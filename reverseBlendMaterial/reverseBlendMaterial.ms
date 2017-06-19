@@ -1,4 +1,4 @@
-plugin material VrayRBlendMtl name:"VRayRBlendMtl" classID:#(0x1081c539, 0x665ccde3) extends:VRayBlendMtl replaceUI:true version:2
+plugin material VrayRBlendMtl name:"VRayRBlendMtl" classID:#(0x1081c539, 0x665ccde3) extends:VRayBlendMtl replaceUI:true version:1
 (
 	parameters main rollout:params
 	(
