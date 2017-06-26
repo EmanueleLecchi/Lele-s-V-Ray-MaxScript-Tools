@@ -4,11 +4,10 @@ push $cut_paste_input
 Group {
  name VRayKerneler
  selected true
- xpos -26
- ypos -238
+ xpos -2284
+ ypos 54
  addUserKnob {20 MainControlsTab l "Main Controls:" -STARTLINE}
  addUserKnob {4 viewPD l "View Mode:" -STARTLINE M {pass-through "Noise Threshold (Abs)" Average "Root Mean Square" Variance "Signal-to-Noise Ratio" "Normalised Noise Threshold" "Abs. Error Ratio (needs the reference input!)" "" "" "" "" "" ""}}
- viewPD "Noise Threshold (Abs)"
  addUserKnob {6 PremultCkb l Premult. t "Premultiply Input?" -STARTLINE}
  PremultCkb true
  addUserKnob {22 kernelerGo l Analyse! t "Click to measure!" -STARTLINE T "theNodes=nuke.allNodes(group = nuke.thisGroup())\nwidth=nuke.thisGroup().input(0).width()\nheight=nuke.thisGroup().input(0).height()\n\nfor i in theNodes:\n if \"valueMeasurer\" in i.knob('name').value():\n  i.knob('ROI').setValue(\[0, 0, width, height])\n  i.knob('autocropdata').setValue(\[0, 0, width, height])\n  i.knob('operation').setValue('Max Luma Pixel')\n  nuke.execute(i, 1, 1)\n  i.knob('operation').setValue('Avg Intensities')\n  nuke.execute(i, 1, 1)\n if \"luminanceMeasurer\" in i.knob('name').value():\n  i.knob('ROI').setValue(\[0, 0, width, height])\n  i.knob('autocropdata').setValue(\[0, 0, width, height])\n  i.knob('operation').setValue('Max Luma Pixel')\n  nuke.execute(i, 1, 1)\n  i.knob('operation').setValue('Avg Intensities')\n  nuke.execute(i, 1, 1)\n\n if \"stampText\" in i.knob('name').value():\n  i.knob('box').setValue(\[8, 0, width, (height-8)])\n"}
@@ -52,7 +51,7 @@ Group {
   xpos 314
   ypos -582
  }
-set N501be800 [stack 0]
+set N51bd0400 [stack 0]
  Premult {
   name Premult1
   xpos 200
@@ -63,7 +62,7 @@ set N501be800 [stack 0]
   xpos 234
   ypos -510
  }
-push $N501be800
+push $N51bd0400
  Switch {
   inputs 2
   which {{VRayKerneler.PremultCkb}}
@@ -77,19 +76,19 @@ push $N501be800
   xpos 314
   ypos -402
  }
-set N3845800 [stack 0]
+set N51c01800 [stack 0]
  Dot {
   name Dot9
   xpos 314
   ypos -258
  }
-set N501a3c00 [stack 0]
+set N51c01400 [stack 0]
  Dot {
   name Dot11
   xpos 314
   ypos -186
  }
-set N501a3800 [stack 0]
+set N51c01000 [stack 0]
  Merge2 {
   inputs 2
   operation difference
@@ -102,7 +101,7 @@ set N501a3800 [stack 0]
   xpos 474
   ypos -150
  }
-push $N3845800
+push $N51c01800
  Dot {
   name Dot8
   xpos 474
@@ -132,8 +131,8 @@ push $N3845800
   xpos 474
   ypos -330
  }
-set N501a3400 [stack 0]
-push $N501a3c00
+set N51c25800 [stack 0]
+push $N51c01400
  Merge2 {
   inputs 2
   operation divide
@@ -156,25 +155,25 @@ push $N501a3c00
   xpos 554
   ypos -114
  }
-push $N3845800
+push $N51c01800
  Dot {
   name Dot7
   xpos 234
   ypos -402
  }
-set N50187c00 [stack 0]
+set N51c24400 [stack 0]
  Dot {
   name Dot10
   xpos 154
   ypos -402
  }
-set N50186800 [stack 0]
+set N51c24000 [stack 0]
  Dot {
   name Dot12
   xpos 74
   ypos -402
  }
-set N50186400 [stack 0]
+set N51c4bc00 [stack 0]
  Dot {
   name Dot13
   xpos -6
@@ -204,7 +203,7 @@ set N50186400 [stack 0]
   xpos -6
   ypos -78
  }
-push $N50186400
+push $N51c4bc00
  Expression {
   temp_name0 varR
   temp_expr0 " \[value RMS.temp_expr0]-(\[value AVG.temp_expr0] * \[value AVG.temp_expr0])"
@@ -229,7 +228,7 @@ push $N50186400
   xpos 74
   ypos -114
  }
-push $N50186800
+push $N51c24000
  Expression {
   temp_name0 rmsR
   temp_expr0 "(r(x,y)*r(x,y)+r(x,y-1)*r(x,y-1)+r(x,y+1)*r(x,y+1)+r(x-1,y)*r(x-1,y)+r(x-1,y-1)*r(x-1,y-1)+r(x-1,y+1)*r(x-1,y+1)+r(x+1,y)*r(x+1,y)+r(x+1,y-1)*r(x+1,y-1)+r(x+1,y+1)*r(x+1,y+1))/9\n"
@@ -254,7 +253,7 @@ push $N50186800
   xpos 154
   ypos -150
  }
-push $N50187c00
+push $N51c24400
  Expression {
   temp_name0 avgR
   temp_expr0 (r(x,y)+r(x,y-1)+r(x,y+1)+r(x-1,y)+r(x-1,y-1)+r(x-1,y+1)+r(x+1,y)+r(x+1,y-1)+r(x+1,y+1))/9
@@ -279,7 +278,7 @@ push $N50187c00
   xpos 234
   ypos -186
  }
-push $N501a3400
+push $N51c25800
  Dot {
   name Dot17
   xpos 634
@@ -290,7 +289,7 @@ push $N501a3400
   xpos 634
   ypos -78
  }
-push $N501a3800
+push $N51c01000
  Switch {
   inputs 8
   which {{viewPD}}
@@ -299,24 +298,33 @@ push $N501a3800
   xpos 280
   ypos -82
  }
+ Expression {
+  expr0 "isnan(r) ? 0 : r"
+  expr1 "isnan(g) ? 0 : g"
+  expr2 "isnan(b) ? 0 : b"
+  expr3 "isnan(a) ? 0 : a"
+  name NanProtector
+  xpos 280
+  ypos -46
+ }
  Dot {
   name Dot5
   xpos 314
-  ypos -42
+  ypos -6
  }
-set N2fce7000 [stack 0]
+set N51c97400 [stack 0]
  Dot {
   name Dot6
   xpos 154
-  ypos -42
+  ypos -6
  }
  CurveTool {
-  ROI {0 0 2868 4310}
-  autocropdata {0 0 2868 4310}
+  ROI {0 0 1024 512}
+  autocropdata {0 0 1024 512}
   intensitydata {0 0 0 0}
-  maxlumapixdata {{curve x1 125} {curve x1 513}}
+  maxlumapixdata {{curve x1 582} {curve x1 307}}
   maxlumapixvalue {0 0 0}
-  minlumapixdata {{curve x1 58} {curve x1 298}}
+  minlumapixdata {{curve x1 37} {curve x1 0}}
   minlumapixvalue {0 0 0}
   name valueMeasurer
   tile_color 0xb740b6ff
@@ -332,37 +340,37 @@ set N2fce7000 [stack 0]
   ypos 98
  }
  CurveTool {
-  ROI {0 0 2868 4310}
-  autocropdata {0 0 2868 4310}
+  ROI {0 0 1024 512}
+  autocropdata {0 0 1024 512}
   intensitydata {0 0 0 0}
-  maxlumapixdata {{curve x1 125} {curve x1 513}}
+  maxlumapixdata {{curve x1 582} {curve x1 307}}
   maxlumapixvalue {0 0 0}
-  minlumapixdata {{curve x1 58} {curve x1 298}}
+  minlumapixdata {{curve x1 37} {curve x1 0}}
   minlumapixvalue {0 0 0}
   name luminanceMeasurer
   tile_color 0xb740b6ff
   xpos 120
   ypos 134
  }
-push $N2fce7000
+push $N51c97400
  Dot {
   name Dot1
   xpos 474
-  ypos -42
+  ypos -6
  }
  Text2 {
   font_size_toolbar 14
   font_width_toolbar 100
   font_height_toolbar 100
   message "Mode: \[value viewPD]\nmin (RGBV):  \[format \"%f\" \[value valueMeasurer.minlumapixvalue.r]], \[format \"%f\" \[value valueMeasurer.minlumapixvalue.g]], \[format \"%f\" \[value valueMeasurer.minlumapixvalue.b]], \[format \"%f\" \[value luminanceMeasurer.minlumapixvalue.r]]\nmax (RGBV):  \[format \"%f\" \[value valueMeasurer.maxlumapixvalue.r]], \[format \"%f\" \[value valueMeasurer.maxlumapixvalue.g]], \[format \"%f\" \[value valueMeasurer.maxlumapixvalue.b]], \[format \"%f\" \[value luminanceMeasurer.maxlumapixvalue.r]]\navg (RGBV):   \[format \"%f\" \[value valueMeasurer.intensitydata.r]], \[format \"%f\" \[value valueMeasurer.intensitydata.g]], \[format \"%f\" \[value valueMeasurer.intensitydata.b]], \[format \"%f\" \[value luminanceMeasurer.intensitydata.r]]\n\n"
-  old_message {{77 111 100 101 58 32 78 111 105 115 101 32 84 104 114 101 115 104 111 108 100 32 40 65 98 115 41 10 109 105 110 32 40 82 71 66 86 41 58 32 32 48 46 48 48 48 48 48 48 44 32 48 46 48 48 48 48 48 48 44 32 48 46 48 48 48 48 48 48 44 32 48 46 48 48 48 48 48 48 10 109 97 120 32 40 82 71 66 86 41 58 32 32 48 46 48 48 48 48 48 48 44 32 48 46 48 48 48 48 48 48 44 32 48 46 48 48 48 48 48 48 44 32 48 46 48 48 48 48 48 48 10 97 118 103 32 40 82 71 66 86 41 58 32 32 32 48 46 48 48 48 48 48 48 44 32 48 46 48 48 48 48 48 48 44 32 48 46 48 48 48 48 48 48 44 32 48 46 48 48 48 48 48 48 10 10}
+  old_message {{77 111 100 101 58 32 82 111 111 116 32 77 101 97 110 32 83 113 117 97 114 101 10 109 105 110 32 40 82 71 66 86 41 58 32 32 48 46 48 48 48 48 48 48 44 32 48 46 48 48 48 48 48 48 44 32 48 46 48 48 48 48 48 48 44 32 48 46 48 48 48 48 48 48 10 109 97 120 32 40 82 71 66 86 41 58 32 32 48 46 48 48 48 48 48 48 44 32 49 50 52 56 48 54 48 46 48 48 48 48 48 48 44 32 50 56 52 52 49 56 48 46 48 48 48 48 48 48 44 32 49 48 57 55 56 55 48 46 48 48 48 48 48 48 10 97 118 103 32 40 82 71 66 86 41 58 32 32 32 49 49 46 55 55 52 49 48 48 44 32 50 54 46 50 51 49 54 48 48 44 32 49 54 51 46 49 55 56 48 48 48 44 32 51 51 46 48 52 50 51 48 48 10 10}
     }
-  old_expression_markers {{6 26 41 48 51 58 61 68 71 78 93 100 103 110 113 120 123 130 146 153 156 163 166 173 176 183}
+  old_expression_markers {{6 21 36 43 46 53 56 63 66 73 88 95 98 111 114 127 130 143 159 167 170 178 181 190 193 201}
     }
-  box {8 0 2868 4302}
+  box {8 0 1024 504}
   transforms {{0 2}
     }
-  font_size_values {{0 14 1 14 2 14 3 14 4 14 5 14 6 14 7 14 8 14 9 14 10 14 11 14 12 14 5 14 13 14 14 14 15 14 16 14 17 14 18 14 19 14 20 14 21 14 22 14 23 14 24 14 25 14 26 14 27 14 28 14 29 14 30 14 31 14 32 14 33 14 34 14 35 14 36 14 37 14 38 14 39 14 40 14 41 14 42 14 43 14 44 14 45 14 46 14 47 14 48 14 49 14 50 14 51 14 52 14 53 14 54 14 55 14 56 14 57 14 58 14 185 14 28 20 29 20 30 20 38 20 59 14 60 14 61 14 62 14 63 14 64 14 65 14 66 14 67 14 68 14 69 14 70 14 71 14 72 14 73 14 74 14 75 14 76 14 77 14 78 14 79 14 80 14 81 14 82 14 83 14 84 14 85 14 86 14 87 14 88 14 89 14 90 14 91 14 92 14 93 14 94 14 95 14 96 14 97 14 98 14 99 14 100 14 101 14 102 14 103 14 104 14 105 14 106 14 107 14 108 14 109 14 110 14 111 14 112 14 113 14 114 14 115 14 116 14 117 14 118 14 119 14 120 14 121 14 122 14 123 14 124 14 125 14 126 14 127 14 128 14 129 14 130 14 131 14 132 14 133 14 134 14 135 14 136 14 137 14 138 14 139 14 140 14 141 14 142 14 143 14 144 14 145 14 146 14 147 14 148 14 149 14 150 14 151 14 152 14 153 14 154 14 155 14 156 14 157 14 158 14 159 14 160 14 161 14 162 14 163 14 164 14 165 14 166 14 167 14 168 14 169 14 170 14 171 14 172 14 173 14 59 20 60 20 61 20 62 20 63 20 64 20 65 20 174 14 175 14 176 14 177 14 178 14 179 14 180 14 181 14 182 14 183 14 174 15 175 15 176 15 177 15 178 15 179 15 180 15 181 15 182 15 183 15 184 14 184 16}
+  font_size_values {{0 14 1 14 2 14 3 14 4 14 5 14 6 14 7 14 8 14 9 14 10 14 11 14 12 14 13 14 14 14 15 14 16 14 17 14 18 14 19 14 20 14 5 14 21 14 22 14 23 14 24 14 25 14 26 14 27 14 28 14 29 14 30 14 31 14 32 14 33 14 34 14 35 14 36 14 37 14 38 14 39 14 40 14 41 14 42 14 43 14 44 14 45 14 46 14 47 14 48 14 49 14 50 14 51 14 52 14 53 14 203 14 23 20 24 20 25 20 33 20 54 14 55 14 56 14 57 14 58 14 59 14 60 14 61 14 62 14 63 14 64 14 65 14 66 14 67 14 68 14 69 14 70 14 71 14 72 14 73 14 74 14 75 14 76 14 77 14 78 14 79 14 80 14 81 14 82 14 83 14 84 14 85 14 86 14 87 14 88 14 89 14 90 14 91 14 92 14 93 14 94 14 95 14 96 14 97 14 98 14 99 14 100 14 101 14 102 14 103 14 104 14 105 14 106 14 107 14 108 14 109 14 110 14 111 14 112 14 113 14 114 14 115 14 116 14 117 14 118 14 119 14 120 14 121 14 122 14 123 14 124 14 125 14 126 14 127 14 128 14 129 14 130 14 131 14 132 14 133 14 134 14 135 14 136 14 137 14 138 14 139 14 140 14 141 14 142 14 143 14 144 14 145 14 146 14 147 14 148 14 149 14 150 14 151 14 152 14 153 14 154 14 155 14 156 14 157 14 158 14 159 14 160 14 161 14 162 14 163 14 164 14 165 14 166 14 167 14 168 14 169 14 170 14 171 14 172 14 173 14 174 14 175 14 176 14 177 14 178 14 179 14 180 14 181 14 182 14 183 14 184 14 185 14 186 14 187 14 188 14 189 14 190 14 54 20 55 20 56 20 57 20 58 20 59 20 60 20 191 14 192 14 193 14 194 14 195 14 196 14 197 14 198 14 199 14 200 14 201 14 191 15 192 15 193 15 194 15 195 15 196 15 197 15 198 15 199 15 200 15 202 14 202 16}
     }
   cursor_position 20
   font_size 14
@@ -383,13 +391,13 @@ push $N2fce7000
   xpos 440
   ypos 134
  }
-set N2fd2d800 [stack 0]
+set N51cd1c00 [stack 0]
  Dot {
   name Dot4
   xpos 474
   ypos 282
  }
-push $N2fce7000
+push $N51c97400
  Switch {
   inputs 2
   which {{parent.showText}}
@@ -403,7 +411,7 @@ push $N2fce7000
   xpos 280
   ypos 350
  }
-push $N2fd2d800
+push $N51cd1c00
  Viewer {
   frame_range 1-100
   name Viewer1
