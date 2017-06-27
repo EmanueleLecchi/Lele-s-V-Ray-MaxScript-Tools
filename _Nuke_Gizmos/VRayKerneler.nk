@@ -5,8 +5,8 @@ Group {
  name VRayKerneler83
  label "Pass-Through\n"
  selected true
- xpos -1669
- ypos -463
+ xpos -1687
+ ypos -464
  postage_stamp true
  addUserKnob {20 MainControlsTab l "Main Controls:" -STARTLINE}
  addUserKnob {4 viewPD l "View Mode:" -STARTLINE M {pass-through "Noise Threshold (Abs)" Average "Root Mean Square" Variance "Signal-to-Noise Ratio" "Normalised Noise Threshold" "Abs. Error Ratio (needs the reference input!)" "" "" "" "" "" ""}}
@@ -15,14 +15,14 @@ Group {
  addUserKnob {22 kernelerGo l "                                                      Analyse!                                                 " t "Click to measure!" T "theNodes=nuke.allNodes(group = nuke.thisGroup())\nwidth=nuke.thisGroup().input(0).width()\nheight=nuke.thisGroup().input(0).height()\n\nfor i in theNodes:\n if \"valueMeasurer\" in i.knob('name').value():\n  i.knob('ROI').setValue(\[0, 0, width, height])\n  i.knob('autocropdata').setValue(\[0, 0, width, height])\n  i.knob('operation').setValue('Max Luma Pixel')\n  nuke.execute(i, 1, 1)\n  i.knob('operation').setValue('Avg Intensities')\n  nuke.execute(i, 1, 1)\n if \"luminanceMeasurer\" in i.knob('name').value():\n  i.knob('ROI').setValue(\[0, 0, width, height])\n  i.knob('autocropdata').setValue(\[0, 0, width, height])\n  i.knob('operation').setValue('Max Luma Pixel')\n  nuke.execute(i, 1, 1)\n  i.knob('operation').setValue('Avg Intensities')\n  nuke.execute(i, 1, 1)\n\n if \"stampText\" in i.knob('name').value():\n  i.knob('box').setValue(\[8, 0, width, (height-8)])\n" +STARTLINE}
  addUserKnob {26 spacer2 l "" +STARTLINE}
  addUserKnob {19 Min l "Min (RGBV):"}
- Min {{valueMeasurerR.minlumapixvalue.r} {valueMeasurerR.minlumapixvalue.g} {valueMeasurerR.minlumapixvalue.b} {luminanceMeasurer.minlumapixvalue.r}}
+ Min {{valueMeasurerR.minlumapixvalue.r} {valueMeasurerG.minlumapixvalue.g} {valueMeasurerB.minlumapixvalue.b} {luminanceMeasurer.minlumapixvalue.r}}
  addUserKnob {6 Min_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
  addUserKnob {6 min_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
  addUserKnob {19 Max l "Max (RGBV):"}
- Max {{valueMeasurerR.maxlumapixvalue.r} {valueMeasurerR.maxlumapixvalue.g} {valueMeasurerR.maxlumapixvalue.b} {luminanceMeasurer.maxlumapixvalue.r}}
+ Max {{valueMeasurerR.maxlumapixvalue.r} {valueMeasurerG.maxlumapixvalue.g} {valueMeasurerB.maxlumapixvalue.b} {luminanceMeasurer.maxlumapixvalue.r}}
  addUserKnob {6 Max_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
  addUserKnob {19 Avg l "Avg (RGBV):"}
- Avg {{valueMeasurerR.intensitydata.r} {valueMeasurerR.intensitydata.g} {valueMeasurerR.intensitydata.b} {luminanceMeasurer.intensitydata.r}}
+ Avg {{valueMeasurerR.intensitydata.r} {valueMeasurerG.intensitydata.g} {valueMeasurerB.intensitydata.b} {luminanceMeasurer.intensitydata.r}}
  addUserKnob {6 Avg_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
  addUserKnob {26 spacer l "" +STARTLINE}
  addUserKnob {6 showText l "Stamp Results" -STARTLINE}
