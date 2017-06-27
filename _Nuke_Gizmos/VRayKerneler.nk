@@ -5,8 +5,8 @@ Group {
  name VRayKerneler83
  label "Pass-Through\n"
  selected true
- xpos -1687
- ypos -464
+ xpos -1720
+ ypos -472
  postage_stamp true
  addUserKnob {20 MainControlsTab l "Main Controls:" -STARTLINE}
  addUserKnob {4 viewPD l "View Mode:" -STARTLINE M {pass-through "Noise Threshold (Abs)" Average "Root Mean Square" Variance "Signal-to-Noise Ratio" "Normalised Noise Threshold" "Abs. Error Ratio (needs the reference input!)" "" "" "" "" "" ""}}
@@ -67,7 +67,7 @@ set N5f63d400 [stack 0]
 push $N5f63d400
  Switch {
   inputs 2
-  which {{VRayKerneler83.PremultCkb}}
+  which {{parent.PremultCkb}}
   name PremultSwitch
   tile_color 0x55ffbfff
   xpos 280
@@ -328,6 +328,7 @@ set N5f6c6c00 [stack 0]
 push $N5f6c6c00
  Switch {
   inputs 2
+  which {{parent.nanProtect}}
   name NaNProtSwitch
   xpos 280
   ypos 26
