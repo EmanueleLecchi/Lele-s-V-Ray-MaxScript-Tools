@@ -2,11 +2,11 @@ set cut_paste_input [stack 0]
 version 10.0 v3
 push $cut_paste_input
 Group {
- name VRayKerneler83
- label "Pass-Through\n"
+ name VRayKerneler
+ label "\n"
  selected true
- xpos -1720
- ypos -472
+ xpos -684
+ ypos -119
  postage_stamp true
  addUserKnob {20 MainControlsTab l "Main Controls:" -STARTLINE}
  addUserKnob {4 viewPD l "View Mode:" -STARTLINE M {pass-through "Noise Threshold (Abs)" Average "Root Mean Square" Variance "Signal-to-Noise Ratio" "Normalised Noise Threshold" "Abs. Error Ratio (needs the reference input!)" "" "" "" "" "" ""}}
@@ -53,7 +53,7 @@ Group {
   xpos 314
   ypos -546
  }
-set N5f63d400 [stack 0]
+set N31841800 [stack 0]
  Premult {
   name Premult
   xpos 200
@@ -64,7 +64,7 @@ set N5f63d400 [stack 0]
   xpos 234
   ypos -510
  }
-push $N5f63d400
+push $N31841800
  Switch {
   inputs 2
   which {{parent.PremultCkb}}
@@ -78,19 +78,19 @@ push $N5f63d400
   xpos 314
   ypos -402
  }
-set N5f63c800 [stack 0]
+set N31840c00 [stack 0]
  Dot {
   name Dot9
   xpos 314
   ypos -258
  }
-set N5f63c400 [stack 0]
+set N31840800 [stack 0]
  Dot {
   name Dot11
   xpos 314
   ypos -186
  }
-set N5f63c000 [stack 0]
+set N31840400 [stack 0]
  Merge2 {
   inputs 2
   operation difference
@@ -103,7 +103,7 @@ set N5f63c000 [stack 0]
   xpos 474
   ypos -150
  }
-push $N5f63c800
+push $N31840c00
  Dot {
   name Dot8
   xpos 474
@@ -133,8 +133,8 @@ push $N5f63c800
   xpos 474
   ypos -330
  }
-set N5f65c800 [stack 0]
-push $N5f63c400
+set N31864c00 [stack 0]
+push $N31840800
  Merge2 {
   inputs 2
   operation divide
@@ -157,25 +157,25 @@ push $N5f63c400
   xpos 554
   ypos -114
  }
-push $N5f63c800
+push $N31840c00
  Dot {
   name Dot7
   xpos 234
   ypos -402
  }
-set N5f68b400 [stack 0]
+set N3188b800 [stack 0]
  Dot {
   name Dot10
   xpos 154
   ypos -402
  }
-set N5f68b000 [stack 0]
+set N3188b400 [stack 0]
  Dot {
   name Dot12
   xpos 74
   ypos -402
  }
-set N5f68ac00 [stack 0]
+set N3188b000 [stack 0]
  Dot {
   name Dot13
   xpos -6
@@ -205,7 +205,7 @@ set N5f68ac00 [stack 0]
   xpos -6
   ypos -78
  }
-push $N5f68ac00
+push $N3188b000
  Expression {
   temp_name0 varR
   temp_expr0 " \[value RMS.temp_expr0]-(\[value AVG.temp_expr0] * \[value AVG.temp_expr0])"
@@ -230,7 +230,7 @@ push $N5f68ac00
   xpos 74
   ypos -114
  }
-push $N5f68b000
+push $N3188b400
  Expression {
   temp_name0 rmsR
   temp_expr0 "(r(x,y)*r(x,y)+r(x,y-1)*r(x,y-1)+r(x,y+1)*r(x,y+1)+r(x-1,y)*r(x-1,y)+r(x-1,y-1)*r(x-1,y-1)+r(x-1,y+1)*r(x-1,y+1)+r(x+1,y)*r(x+1,y)+r(x+1,y-1)*r(x+1,y-1)+r(x+1,y+1)*r(x+1,y+1))/9\n"
@@ -255,7 +255,7 @@ push $N5f68b000
   xpos 154
   ypos -150
  }
-push $N5f68b400
+push $N3188b800
  Expression {
   temp_name0 avgR
   temp_expr0 (r(x,y)+r(x,y-1)+r(x,y+1)+r(x-1,y)+r(x-1,y-1)+r(x-1,y+1)+r(x+1,y)+r(x+1,y-1)+r(x+1,y+1))/9
@@ -280,7 +280,7 @@ push $N5f68b400
   xpos 234
   ypos -186
  }
-push $N5f65c800
+push $N31864c00
  Dot {
   name Dot17
   xpos 634
@@ -291,7 +291,7 @@ push $N5f65c800
   xpos 634
   ypos -78
  }
-push $N5f63c000
+push $N31840400
  Switch {
   inputs 8
   which {{viewPD}}
@@ -305,7 +305,7 @@ push $N5f63c000
   xpos 314
   ypos -42
  }
-set N5f6c6c00 [stack 0]
+set N318cd000 [stack 0]
  Dot {
   name Dot28
   xpos 234
@@ -325,7 +325,7 @@ set N5f6c6c00 [stack 0]
   xpos 234
   ypos 30
  }
-push $N5f6c6c00
+push $N318cd000
  Switch {
   inputs 2
   which {{parent.nanProtect}}
@@ -338,7 +338,7 @@ push $N5f6c6c00
   xpos 314
   ypos 66
  }
-set N5f6f1800 [stack 0]
+set N318fbc00 [stack 0]
  Dot {
   name Dot1
   xpos 474
@@ -353,7 +353,7 @@ set N5f6f1800 [stack 0]
     }
   old_expression_markers {{6 17 32 39 42 49 52 59 62 69 84 91 94 101 104 111 114 121 137 144 147 154 157 164 167 174}
     }
-  box {8 0 1024 504}
+  box {8 0 512 504}
   transforms {{0 2}
     }
   font_size_values {{0 14 1 14 2 14 3 14 4 14 5 14 6 14 7 14 8 14 9 14 10 14 11 14 12 14 13 14 14 14 15 14 16 14 17 14 5 14 18 14 19 14 20 14 21 14 22 14 23 14 24 14 25 14 26 14 27 14 28 14 29 14 30 14 31 14 32 14 33 14 34 14 35 14 36 14 37 14 38 14 39 14 176 14 19 20 20 20 21 20 29 20 40 14 41 14 42 14 43 14 44 14 45 14 46 14 47 14 48 14 49 14 50 14 51 14 52 14 53 14 54 14 55 14 56 14 57 14 58 14 59 14 60 14 61 14 62 14 63 14 64 14 65 14 66 14 67 14 68 14 69 14 70 14 71 14 72 14 73 14 74 14 75 14 76 14 77 14 78 14 79 14 80 14 81 14 82 14 83 14 84 14 85 14 86 14 87 14 88 14 89 14 90 14 91 14 92 14 93 14 94 14 95 14 96 14 97 14 98 14 99 14 100 14 101 14 102 14 103 14 104 14 105 14 106 14 107 14 108 14 109 14 110 14 111 14 112 14 113 14 114 14 115 14 116 14 117 14 118 14 119 14 120 14 121 14 122 14 123 14 124 14 125 14 126 14 127 14 128 14 129 14 130 14 131 14 132 14 133 14 134 14 135 14 136 14 137 14 138 14 139 14 140 14 141 14 142 14 143 14 144 14 145 14 146 14 147 14 148 14 149 14 150 14 151 14 152 14 153 14 154 14 155 14 156 14 157 14 158 14 159 14 160 14 161 14 162 14 163 14 164 14 165 14 166 14 167 14 168 14 169 14 170 14 171 14 172 14 173 14 174 14 165 15 166 15 167 15 168 15 169 15 170 15 171 15 172 15 173 15 175 14 175 16}
@@ -369,21 +369,22 @@ set N5f6f1800 [stack 0]
   animation_layers {{1 11 1024 778 0 0 1 1 0 0 0 0}
     }
   enable_shadows true
+  shadow_opacity 1
   shadow_distance 0
   shadow_softness 2.5
-  shadow_size 2.5
+  shadow_size 5
   name stampText
   tile_color 0xffd600ff
   xpos 440
   ypos 206
  }
-set N5f6f1000 [stack 0]
+set N318fb400 [stack 0]
  Dot {
   name Dot4
   xpos 474
   ypos 354
  }
-push $N5f6f1800
+push $N318fbc00
  Switch {
   inputs 2
   which {{parent.showText}}
@@ -397,13 +398,13 @@ push $N5f6f1800
   xpos 280
   ypos 494
  }
-push $N5f6f1800
+push $N318fbc00
  Dot {
   name Dot30
   xpos 234
   ypos 66
  }
-set N7d4fc800 [stack 0]
+set N318fa400 [stack 0]
  Colorspace {
   colorspace_out CIE-Yxy
   bradford_matrix true
@@ -413,83 +414,82 @@ set N7d4fc800 [stack 0]
   ypos 98
  }
  CurveTool {
-  ROI {0 0 1024 512}
-  autocropdata {0 0 1024 512}
+  ROI {0 0 512 512}
+  autocropdata {0 0 512 512}
   intensitydata {0 0 0 0}
-  maxlumapixdata {{curve x1 578} {curve x1 373}}
+  maxlumapixdata {{curve x1 227} {curve x1 143}}
   maxlumapixvalue {0 0 0}
-  minlumapixdata {{curve x1 3} {curve x1 0}}
+  minlumapixdata {{curve x1 9} {curve x1 0}}
   minlumapixvalue {0 0 0}
   name luminanceMeasurer
   tile_color 0xb740b6ff
   xpos 200
   ypos 134
  }
-push $N7d4fc800
+push $N318fa400
  Dot {
   name Dot32
   xpos -6
   ypos 66
  }
-set N82f15800 [stack 0]
+set N3192d800 [stack 0]
  Dot {
   name Dot6
   xpos -86
   ypos 66
  }
-set N5f6f0000 [stack 0]
+set N3192d400 [stack 0]
  Dot {
   name Dot31
   xpos -166
   ypos 66
  }
  CurveTool {
-  channels {rgba.red -rgba.green -rgba.blue}
-  ROI {0 0 1024 512}
-  autocropdata {0 0 1024 512}
+  channels {rgba.red -rgba.green -rgba.blue none}
+  ROI {0 0 512 512}
+  autocropdata {0 0 512 512}
   intensitydata {0 0 0 0}
-  maxlumapixdata {{curve x1 236} {curve x1 323}}
+  maxlumapixdata {{curve x1 227} {curve x1 143}}
   maxlumapixvalue {0 0 0}
-  minlumapixdata {{curve x1 3} {curve x1 0}}
+  minlumapixdata {{curve x1 9} {curve x1 0}}
   minlumapixvalue {0 0 0}
   name valueMeasurerR
   tile_color 0xb740b6ff
   xpos -200
   ypos 128
  }
-push $N5f6f0000
+push $N3192d400
  CurveTool {
   channels {-rgba.red rgba.green -rgba.blue none}
-  ROI {0 0 1024 512}
-  autocropdata {0 0 1024 512}
+  ROI {0 0 512 512}
+  autocropdata {0 0 512 512}
   intensitydata {0 0 0 0}
-  maxlumapixdata {{curve x1 578} {curve x1 373}}
+  maxlumapixdata {{curve x1 227} {curve x1 143}}
   maxlumapixvalue {0 0 0}
-  minlumapixdata {{curve x1 3} {curve x1 0}}
+  minlumapixdata {{curve x1 9} {curve x1 0}}
   minlumapixvalue {0 0 0}
   name valueMeasurerG
   tile_color 0xb740b6ff
   xpos -120
   ypos 134
  }
-push $N82f15800
+push $N3192d800
  CurveTool {
   channels {-rgba.red -rgba.green rgba.blue none}
-  ROI {0 0 1024 512}
-  autocropdata {0 0 1024 512}
+  ROI {0 0 512 512}
+  autocropdata {0 0 512 512}
   intensitydata {0 0 0 0}
-  maxlumapixdata {{curve x1 849} {curve x1 281}}
+  maxlumapixdata {{curve x1 227} {curve x1 143}}
   maxlumapixvalue {0 0 0}
-  minlumapixdata {{curve x1 3} {curve x1 0}}
+  minlumapixdata {{curve x1 9} {curve x1 0}}
   minlumapixvalue {0 0 0}
   name valueMeasurerB
   tile_color 0xb740b6ff
   xpos -40
   ypos 134
  }
-push $N5f6f1000
+push $N318fb400
  Viewer {
-  frame 1
   frame_range 1-100
   name Viewer1
   xpos 760
