@@ -213,7 +213,7 @@
 					setSuperExpertMode on
 					for m in (getclassinstances VrayMtl) where (m.texmap_bump != undefined and (classof m.texmap_bump) != vrayColor2Bump and m.texmap_bump_on ) do
 					(
-						theTex=vrayColor2Bump map:m.texmap_bump height:(m.texmap_bump_multiplier/10.0)
+						theTex=vrayColor2Bump map:m.texmap_bump height:(m.texmap_bump_multiplier/100.0)
 						m.texmap_bump = theTex
 						m.texmap_bump_multiplier = 100
 					)
@@ -225,7 +225,7 @@
 		(
 			for m in (getclassinstances VrayMtl) where (m.texmap_bump != undefined and (classof m.texmap_bump) != vrayColor2Bump and m.texmap_bump_on ) do
 			(
-				theTex=vrayColor2Bump map:m.texmap_bump height:(m.texmap_bump_multiplier/10.0)
+				theTex=vrayColor2Bump map:m.texmap_bump height:(m.texmap_bump_multiplier/100.0)
 				m.texmap_bump = theTex
 				m.texmap_bump_multiplier = 100
 			)	
