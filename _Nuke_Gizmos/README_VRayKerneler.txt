@@ -18,6 +18,8 @@ The tool accepts two inputs: the first expects the image to be analysed, the sec
 
 Plug the image to be analysed into the input labelled "Source", choose the mode of operation from the dropdown (f.e. Absolute Noise Threshold), and press the "Analyse" button.
 Viewing the result will show what the process turned the pixel values into, along with the text showing the measurements.
+Stamp text placement will fix itself after a first analysis.
+
 
 List of modes and brief maths:
 
