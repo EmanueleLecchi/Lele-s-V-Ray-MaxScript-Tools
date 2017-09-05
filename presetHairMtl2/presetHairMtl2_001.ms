@@ -19,7 +19,7 @@ plugin material myVRayHairMtl2 name:"VRayHairMtl2_P" classID:#(0x1081c539, 0x665
 		presetNumber type:#integer default:1 ui:ddl1
 	)
 	
-	rollout params "Confrabulator" width:328 height:168
+	rollout params "Presets" width:328 height:168
 	(
 		label 'lbl1' "Select Preset:" pos:[8,12] width:80 height:16 align:#left
 		dropDownList 'ddl1' "" pos:[88,8] width:232 height:21 align:#left items:#("Soft Blond","Fiery Red","Jet Black","Soft Brown Fur")
