@@ -1,0 +1,9 @@
+Markov-chain like temporal smoothing:
+
+have the "history of evidence" be the Multiplier average of the past 5 frames.
+Have the current Multiplier as the current state.
+
+Subtract the past history from the current state, algebraically sum the result to the current state to infer the forward P. (tendency line)
+
+Validate next frame results based around a P threshold, blending with it as needed over time (the past history ought to allow for "adaptation", even through incremental blending. Speed of adaptation ought to be studied.).
+

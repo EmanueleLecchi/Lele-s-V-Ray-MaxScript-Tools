@@ -1,4 +1,4 @@
-plugin material myVRayHairMtl2 name:"VRayHairMtl2_P" classID:#(0x1081c539, 0x665ccde3) extends:VRayHairMtl2 replaceUI:false version:1
+plugin material myVRayHairMtl2 name:"VRayHairMtl2_P" classID:#(0x1081c539, 0x665ccde3) extends:VRayHairMtl2 replaceUI:false version:1 category:"V-Ray"
 (
 	
 	local presetsList = #(#(0.25,0.50,0.45,0.00,0.5,2.0,1.55),#(0.55,1.00,0.35,0.40,0.8,0.5,1.55),#(0.95,0.00,0.60,0.40,0.40,2.0,1.55),#(0.7,0.35,0.15,0.40,0.995,0.0,1.57))
