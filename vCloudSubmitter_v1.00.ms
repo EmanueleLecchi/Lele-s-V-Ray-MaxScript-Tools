@@ -10,7 +10,13 @@ VCloud submitter mockup v 1.00
 	--local variables to carry the relevant data 
 	local outputRes= if renderers.current.output_getsetsfrommax then [renderWidth,renderHeight,renderPixelAspect] else [renderers.current.output_width,renderers.current.output_height,renderers.current.output_aspect]
 	local outputInterval=[rendStart,rendEnd,RendNthFrame]
-	local outputPath = if renderers.current.output_saveRawFile then renderers.current.output_rawFileName else rendOutputFilename
+	local outputPath = ""
+	
+	fn grabOutputPath =
+	(
+		renderSceneDialog.commit()
+		outputPath = if renderers.current.output_saveRawFile then renderers.current.output_rawFileName else rendOutputFilename
+	)
 
 	rollout vcRoll1 "General Behaviour:" width:320 height:48
 	(
@@ -28,13 +34,14 @@ VCloud submitter mockup v 1.00
 				for c in vcRoll2.controls do c.enabled=not state
 				for c in vcRoll3.controls do c.enabled=not state
 				for c in vcRoll4.controls do c.enabled=not state
-				vcFloater.size=[vcFloater.size[1],128]
+				vcFloater.size-=[0,248]
 			)
 			else
 			(
 				vcRoll2.controls[1].enabled=vcRoll3.controls[1].enabled=vcRoll4.controls[1].enabled=true
-				vcFloater.size=[vcFloater.size[1],376]
+				vcFloater.size+=[0,248]
 			)
+	
 -- 				
 			vcRoll2.open=vcRoll3.open=vcRoll4.open=not state
 			
@@ -146,7 +153,6 @@ VCloud submitter mockup v 1.00
 		button 'btn1' "Browse..." pos:[8,32] width:304 height:24 align:#left
 		button 'btn2' "Grab" pos:[272,16] width:40 height:16 align:#left
 		
-		--editText 'edt1' "" pos:[8,64] width:304 height:54 enabled:true align:#left readonly:true
 		label 'edt1' "" pos:[8,64] width:304 height:54 enabled:true align:#left
 		label 'lbl1' "Override Output Path" pos:[24,16] width:136 height:16 enabled:false align:#left
 		
@@ -157,6 +163,7 @@ VCloud submitter mockup v 1.00
 			fileType = getfilenametype outputPath
 			edt1.text = "Path: " + filepath +"\n" + "Name: " + filename +"\n" + "Type: " + filetype
 		)
+		
 		on vcRoll4 open do
 		(
 			renderSceneDialog.commit()
@@ -167,7 +174,7 @@ VCloud submitter mockup v 1.00
 			
 			if outputPath=="" do
 			( 
-				outputPath = if renderers.current.output_saveRawFile then renderers.current.output_rawFileName else rendOutputFilename
+				grabOutputPath()
 				fillText()
 			)
 		)
@@ -176,7 +183,7 @@ VCloud submitter mockup v 1.00
 			if isOpen and not vcRoll1.controls[1].checked do 
 			(
 				for i = 2 to 5 do vcRoll4.controls[i].enabled=chk1.checked
-	
+				
 			)
 		)
 		on chk1 changed state do
@@ -187,12 +194,12 @@ VCloud submitter mockup v 1.00
 		on btn1 pressed do
 		(
 			outputPath = getSaveFileName()
-			if outputPath == undefined do outputPath=rendOutputFilename
+			if outputPath == undefined do grabOutputPath()
 			fillText()
 		)
 		on btn2 pressed do
 		(
-			outputPath=rendOutputFilename
+			grabOutputPath()
 			fillText()
 		)
 	)
@@ -226,7 +233,7 @@ VCloud submitter mockup v 1.00
 		)
 		on vcRoll5 rolledUp isOpen do
 		(
-			rolloutSize=220
+			rolloutSize=128
 			if isOpen then 
 			(
 				print vcFloater.size
