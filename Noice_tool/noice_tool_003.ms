@@ -35,6 +35,11 @@
 		noiceRoll.lbl1.text = if exrs.count > 1 then ("Found " + exrs.count as string+ " frames to process.") else if exrs.count == 1 then ("Found a single frame to process.") else ("")
 	)
 	
+	fn sanitiseString inString =
+	(
+		outString=substituteString instring "." "_"
+	)
+	
 	fn deNoice =
 	(	
 		if exrs.count != 0 do
@@ -50,24 +55,24 @@
 				(
 					if i == 1 then
 					(
-						shellString += ("\""+ noice + "\" -pr " + pr + " -sr " + sr + " -v " + va + " -i \"" + exrs[i] + "\" -i \"" + exrs[i+1] + "\" -o \"" + inpath + "denoised_" + pr + "_" + sr + "_" + va + "_" + (getfilenamefile exrs[i]) +".exr\"\n")
+						shellString += ("\""+ noice + "\" -pr " + pr + " -sr " + sr + " -v " + va + " -i \"" + exrs[i] + "\" -i \"" + exrs[i+1] + "\" -o \"" + inpath + "denoised_" + pr + "_" + sr + "_" + sanitiseString va + "_" + (getfilenamefile exrs[i]) +".exr\"\n")
 					)
 					else if i == exrs.count then
 					(
-						shellString += ("\""+ noice + "\" -pr " + pr + " -sr " + sr + " -v " + va + " -i \"" + exrs[i] + "\" -i \"" + exrs[i-1] + "\" -o \"" + inpath + "denoised_" + pr + "_" + sr + "_" + va + "_" + (getfilenamefile exrs[i]) +".exr\"\n")
+						shellString += ("\""+ noice + "\" -pr " + pr + " -sr " + sr + " -v " + va + " -i \"" + exrs[i] + "\" -i \"" + exrs[i-1] + "\" -o \"" + inpath + "denoised_" + pr + "_" + sr + "_" + sanitiseString va + "_" + (getfilenamefile exrs[i]) +".exr\"\n")
 					)
 					else
 					(
-						shellString += ("\""+ noice + "\" -pr " + pr + " -sr " + sr + " -v " + va + " -i \"" + exrs[i] + "\" -i \"" + exrs[i-1] + "\" -i \"" + exrs[i+1] + "\" -o \"" + inpath + "denoised_" + pr + "_" + sr + "_" + va + "_" + (getfilenamefile exrs[i]) +".exr\"\n")
+						shellString += ("\""+ noice + "\" -pr " + pr + " -sr " + sr + " -v " + va + " -i \"" + exrs[i] + "\" -i \"" + exrs[i-1] + "\" -i \"" + exrs[i+1] + "\" -o \"" + inpath + "denoised_" + pr + "_" + sr + "_" + sanitiseString va + "_" + (getfilenamefile exrs[i]) +".exr\"\n")
 					)
 				)	
 			)
 			else
 			(
-				shellString += ("\""+ noice + "\" -pr " + pr + " -sr " + sr + " -v " + va + " -i \"" + exrs[1] + "\" -o \"" + inpath + "denoised_" + pr + "_" + sr + "_" + va + "_" + (getfilenamefile exrs[1]) +".exr\"\n")
+				shellString += ("\""+ noice + "\" -pr " + pr + " -sr " + sr + " -v " + va + " -i \"" + exrs[1] + "\" -o \"" + inpath + "denoised_" + pr + "_" + sr + "_" + sanitiseString va + "_" + (getfilenamefile exrs[1]) +".exr\"\n")
 			)
 			
-			outfilePath=inpath + (getfilenamefile exrs[1]) + "_pr_" + pr + "_sr_" + sr + "_va_" + va + "_deNoice.bat"
+			outfilePath=inpath + (getfilenamefile exrs[1]) + "_pr_" + pr + "_sr_" + sr + "_va_" + sanitiseString va + "_deNoice.bat"
 			outFileStream=createFile outFilePath
 			format "%" shellString to:outFileStream
 			close outFileStream
