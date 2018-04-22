@@ -40,3 +40,4 @@ List of modes and brief maths:
 *)	"Normalised Error Ratio" (with Reference Input.) : Normalised version of the above. Px = abs (PxRef-PxSource)/PxRef
 *) 	"Mean Square Error" (with Reference Input.) : Defined as the square of the difference between Reference and Source. Px = (PxRef-PxSource)^2
 *)	"Normalised Mean Square Error" (with Reference Input.)" The normalised version of the previous mode. Px = (PxRef-PxSource)^2/PxRef
+*)	"Noise Threshold (Rel)": Divides the results of the Rel. NT calculations by the image Max in R, G and B. Px = abs(Px - KernelAvg)/MaxValue
