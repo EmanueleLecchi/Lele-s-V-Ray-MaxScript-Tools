@@ -40,4 +40,10 @@ List of modes and brief maths:
 *)	"Normalised Error Ratio" (with Reference Input.) : Normalised version of the above. Px = abs (PxRef-PxSource)/PxRef
 *) 	"Mean Square Error" (with Reference Input.) : Defined as the square of the difference between Reference and Source. Px = (PxRef-PxSource)^2
 *)	"Normalised Mean Square Error" (with Reference Input.)" The normalised version of the previous mode. Px = (PxRef-PxSource)^2/PxRef
-*)	"Noise Threshold (Rel)": Divides the results of the Rel. NT calculations by the image Max in R, G and B. Px = abs(Px - KernelAvg)/MaxValue
+*)	"Noise Threshold (Rel)": Divides the results of the Rel. NT calculations by the image Max in R, G and B. Px = abs(Px - KernelAvg)/MaxImageValue -- DEPRECATED, Nonsensical
+
+Added Options:
+
+*) "Stamp Text": adds text to the image with the calculated values. will appear/adjust itself after Analysis.
+*) "Colorise": colorises in green all pixels below or equal to the average noise value (V), in yellow those above, but within the set % threshold (100% threshold will pick values up to twice as the average V), red for all the other, higher values.
+*) "Auto Normalise Mode" and "Additional Output Mult.": Allow for a few modes to better perceive the output, including a manual multiplier. Does not affect calculations, only display. 
