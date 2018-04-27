@@ -1,0 +1,287 @@
+#! C:/Program Files/Nuke11.0v1/nuke-11.0.1.dll -nx
+#write_info Write1 file:"D:/autoexposure_split/exposimeter_renders/Car_Autoexposure_test.RGB_color.0000//CS_png.mov" format:"2560 1440 1" chans:":rgba.red:rgba.green:rgba.blue:" framerange:"1 8" fps:"0" colorspace:"default (Gamma1.8)" datatype:"unknown" transfer:"unknown" views:"main" colorManagement:"Nuke"
+version 11.0 v1
+define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
+<layout version="1.0">
+    <window x="0" y="0" w="5104" h="2801" screen="0">
+        <splitter orientation="1">
+            <split size="40"/>
+            <dock id="" hideTitles="1" activePageId="Toolbar.1">
+                <page id="Toolbar.1"/>
+            </dock>
+            <split size="4441" stretch="1"/>
+            <splitter orientation="2">
+                <split size="1616"/>
+                <dock id="" activePageId="Viewer.1">
+                    <page id="Viewer.1"/>
+                </dock>
+                <split size="1137"/>
+                <dock id="" activePageId="DAG.1">
+                    <page id="DAG.1"/>
+                    <page id="Curve Editor.1"/>
+                    <page id="DopeSheet.1"/>
+                </dock>
+            </splitter>
+            <split size="615"/>
+            <dock id="" activePageId="Properties.1" focus="true">
+                <page id="Properties.1"/>
+                <page id="uk.co.thefoundry.backgroundrenderview.1"/>
+            </dock>
+        </splitter>
+    </window>
+</layout>
+}
+Root {
+ inputs 0
+ name D:/_Code/GitRepo/Exposimeter_Mk_V_RGB/coomp1.nk
+ frame 470
+ last_frame 8
+ lock_range true
+ format "2048 1556 0 0 2048 1556 1 2K_Super_35(full-ap)"
+ proxy_type scale
+ proxy_format "1024 778 0 0 1024 778 1 1K_Super_35(full-ap)"
+ colorManagement Nuke
+ workingSpaceLUT linear
+ monitorLut sRGB
+ int8Lut sRGB
+ int16Lut sRGB
+ logLut Cineon
+ floatLut linear
+}
+Read {
+ inputs 0
+ file D:/autoexposure_split/Car_Autoexposure_test.RGB_color.####.exr
+ format "1280 720 0 0 1280 720 1 HD_720"
+ first 0
+ last 585
+ origfirst 0
+ origlast 585
+ origset true
+ name Read1
+ xpos -40
+ ypos -270
+}
+Group {
+ inputs 0
+ name Mass_Measurer
+ xpos -1123
+ ypos -28
+ addUserKnob {20 User}
+ addUserKnob {22 doNTs l "Run VRayKernelers' Analysis" T "theNodes=nuke.allNodes(group = nuke.thisGroup())\n\nfor i in theNodes:\n if \"scriptHolder\" in i.knob('name').value():\n  i.knob('btn2').execute()\n" +STARTLINE}
+ addUserKnob {22 doCurveNodes l "Run Curve Nodes' Analysis" T "theNodes=nuke.allNodes(group = nuke.thisGroup())\n\nfor i in theNodes:\n if \"scriptHolder\" in i.knob('name').value():\n  i.knob('btn1').execute()" +STARTLINE}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos 520
+  ypos -570
+ }
+ NoOp {
+  name scriptHolder
+  xpos 520
+  ypos -486
+  addUserKnob {20 User}
+  addUserKnob {22 btn1 T "print \"Running on CurveTools\"\nnuke.root().begin()\ntheNodes=nuke.allNodes()\nfor i in theNodes:\n if \"CurveTool\" in i.knob('name').value():\n  i.knob('resetROI').execute()\n  theKnob=i.knob('go')\n  i.knob('operation').setValue('Avg Intensities')\n  nuke.execute(i, 1, 1)\n  i.knob('operation').setValue('Max Luma Pixel')\n  nuke.execute(i, 1, 1)\n if \"MCT\" in i.knob('name').value():\n  theKnob=i.knob('go')\n  i.knob('operation').setValue('Avg Intensities')\n  theKnob.execute()\nnuke.root().end()" +STARTLINE}
+  addUserKnob {22 btn2 T "print \"Running on NTs!\"\nnuke.root().begin()\nfor i in nuke.allNodes():\n if \"VRayKerneler\" in i.knob('name').value():\n  i.knob('kernelerGo').execute()\nnuke.root().end()" +STARTLINE}
+ }
+ Output {
+  name Output1
+  xpos 520
+  ypos -406
+ }
+end_group
+Read {
+ inputs 0
+ file D:/autoexposure_split/exposimeter_renders/Car_Autoexposure_test.RGB_color.0000/History.#.exr
+ format "1280 720 0 0 1280 720 1 HD_720"
+ last 586
+ origlast 68
+ origset true
+ name Read6
+ xpos -664
+ ypos -325
+}
+Text2 {
+ font_size_toolbar 40
+ font_width_toolbar 100
+ font_height_toolbar 100
+ message "History-Based Weighted"
+ old_message {{72 105 115 116 111 114 121 45 66 97 115 101 100 32 87 101 105 103 104 116 101 100}
+   }
+ box {22 18.90000153 460 59.90000153}
+ transforms {{0 2}
+   }
+ font_size_values {{0 40 1 40 2 40 3 40 4 40 5 40 6 40 7 40 8 40 9 40 10 40 11 40 12 40 13 40 14 40 15 40 16 40 17 40 18 40 19 40 20 40 21 40 0 40 1 40 2 40 3 40 4 40 5 40 6 40 7 40 8 40 9 40 10 40 11 40 12 40 13 40 14 40 15 40 16 40 17 40 18 40 19 40 20 40 21 40}
+   }
+ font_size 40
+ center {640 360}
+ cursor_initialised true
+ autofit_bbox false
+ initial_cursor_position {{22 83.70000076}
+   }
+ group_animations {{0} imported: 0 selected: items: "root transform/"}
+ animation_layers {{1 11 640 360 0 0 1 1 0 0 0 0}
+   }
+ name Text4
+ xpos -664
+ ypos -239
+}
+Read {
+ inputs 0
+ file D:/autoexposure_split/exposimeter_renders/Car_Autoexposure_test.RGB_color.0000/Bins.#.exr
+ format "1280 720 0 0 1280 720 1 HD_720"
+ last 586
+ origlast 67
+ origset true
+ name Read5
+ xpos -750
+ ypos -325
+}
+Text2 {
+ font_size_toolbar 40
+ font_width_toolbar 100
+ font_height_toolbar 100
+ message "Image Bins"
+ old_message {{73 109 97 103 101 32 66 105 110 115}
+   }
+ box {22 18.90000153 460 59.90000153}
+ transforms {{0 2}
+   }
+ font_size_values {{0 40 1 40 2 40 3 40 4 40 5 40 6 40 7 40 8 40 9 40 0 40}
+   }
+ cursor_position 10
+ font_size 40
+ center {640 360}
+ cursor_initialised true
+ autofit_bbox false
+ initial_cursor_position {{22 83.70000076}
+   }
+ group_animations {{0} imported: 0 selected: items: "root transform/"}
+ animation_layers {{1 11 640 360 0 0 1 1 0 0 0 0}
+   }
+ name Text1
+ xpos -750
+ ypos -239
+}
+Read {
+ inputs 0
+ file D:/autoexposure_split/exposimeter_renders/Car_Autoexposure_test.RGB_color.0000/Unweighted.#.exr
+ format "1280 720 0 0 1280 720 1 HD_720"
+ last 586
+ origlast 67
+ origset true
+ name Read2
+ xpos -835
+ ypos -323
+}
+Text2 {
+ font_size_toolbar 40
+ font_width_toolbar 100
+ font_height_toolbar 100
+ message Non-Weighted
+ old_message {{78 111 110 45 87 101 105 103 104 116 101 100}
+   }
+ box {22 18.90000153 460 59.90000153}
+ transforms {{0 2}
+   }
+ font_size_values {{0 40 1 40 2 40 3 40 4 40 5 40 6 40 7 40 8 40 9 40 10 40 11 40 0 40}
+   }
+ cursor_position 12
+ font_size 40
+ center {640 360}
+ cursor_initialised true
+ autofit_bbox false
+ initial_cursor_position {{22 83.70000076}
+   }
+ group_animations {{0} imported: 0 selected: items: "root transform/"}
+ animation_layers {{1 11 640 360 0 0 1 1 0 0 0 0}
+   }
+ name Text2
+ xpos -835
+ ypos -239
+}
+Read {
+ inputs 0
+ file D:/autoexposure_split/exposimeter_renders/Car_Autoexposure_test.RGB_color.0000/RawInput.#.exr
+ format "1280 720 0 0 1280 720 1 HD_720"
+ last 586
+ origlast 67
+ origset true
+ version 1
+ name Read4
+ xpos -921
+ ypos -328
+}
+Text2 {
+ font_size_toolbar 40
+ font_width_toolbar 100
+ font_height_toolbar 100
+ message Input
+ old_message {{73 110 112 117 116}
+   }
+ box {22 18.90000153 460 59.90000153}
+ transforms {{0 2}
+   }
+ font_size_values {{0 40 1 40 2 40 3 40 4 40 0 40}
+   }
+ cursor_position 5
+ font_size 40
+ center {640 360}
+ cursor_initialised true
+ autofit_bbox false
+ initial_cursor_position {{22 83.70000076}
+   }
+ group_animations {{0} imported: 0 selected: items: "root transform/"}
+ animation_layers {{1 11 640 360 0 0 1 1 0 0 0 0}
+   }
+ name Text3
+ xpos -921
+ ypos -242
+}
+ContactSheet {
+ inputs 4
+ width {{input.width*columns+((columns+1)*gap) 6604}}
+ height {{input.height*rows+((rows+1)*gap)}}
+ rows 2
+ columns 2
+ center true
+ roworder TopBottom
+ startframe 0
+ endframe 0
+ name AutoContactSheet
+ xpos -790
+ ypos -117
+}
+set N82c1880 [stack 0]
+Viewer {
+ frame 470
+ frame_range 1-586
+ colour_sample_bbox {0.109375 0.02812499925 0.1109374985 0.02968749963}
+ samplepoints {{0.09375 0.02031249925}
+   }
+ name Viewer1
+ xpos -40
+ ypos -10
+}
+push $N82c1880
+Write {
+ file D:/autoexposure_split/exposimeter_renders/Car_Autoexposure_test.RGB_color.0000//CS_png.mov
+ file_type mov
+ meta_codec "png "
+ mov64_codec "png "
+ mov64_fps 30
+ mov64_units Frames
+ mov64_write_timecode true
+ mov64_advanced 1
+ mov64_bitrate 4000000
+ mov64_bitrate_tolerance 40000000
+ mov64_quality_min 2
+ mov64_quality_max 31
+ mov64_gop_size 12
+ mov64_b_frames 0
+ checkHashOnRead false
+ version 3
+ name Write1
+ xpos -776
+ ypos 27
+}

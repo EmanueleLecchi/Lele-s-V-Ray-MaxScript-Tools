@@ -26,7 +26,7 @@
 	(
 		if inPath != undefined do
 		(
-			exrs=for f in (getfiles (inPath+"*.exr")) where (matchpattern f pattern:"*AOV*") and not (matchpattern f pattern:"*denoised_*") collect f
+			exrs=for f in (getfiles (inPath+"*.exr")) where not (matchpattern f pattern:"*AOV*") and not (matchpattern f pattern:"*denoised_*") collect f
 		)
 	)	
 	

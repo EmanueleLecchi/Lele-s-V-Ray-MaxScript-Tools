@@ -71,10 +71,10 @@
 		label 'lbl1' "" pos:[8,32] width:352 height:16 align:#left
 		button 'btn2' "go" pos:[8,56] width:352 height:40 align:#left enabled:false
 		
-		on noiceRoll open do
-		(
-			findGlobalNoice()
-		)
+-- 		on noiceRoll open do
+-- 		(
+-- 			findGlobalNoice()
+-- 		)
 		on btn1 pressed do
 		(
 			getInPath()
@@ -84,11 +84,10 @@
 		)
 		on btn2 pressed do
 		(
+			findGlobalNoice()
 			if noice == undefined do findLocalNoice()
-			if noice != undefined do deNoice()
+			if noice != undefined then deNoice() else messageBox "noice.exe not found!"
 		)
 	)
 	createDialog noiceRoll
 )
-
-$max
