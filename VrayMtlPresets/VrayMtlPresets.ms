@@ -83,7 +83,22 @@ extends:VRayMtl replaceUI:false version:1
 				append theVals (execute (readLine theFile))
 			)
 			close theFile
-			for i=1 to theParms.count do setProperty meditMaterials[activeMeditSlot].delegate theParms[i] theVals[i]
+			for i=1 to theParms.count do 
+			(
+				try 
+				( 
+					oldValuepair=#(theParms[i], getProperty  meditMaterials[activeMeditSlot].delegate theParms[i] )
+					setProperty meditMaterials[activeMeditSlot].delegate theParms[i] theVals[i]
+					if oldValuePair[2]!=theVals[i] do
+					(
+						print ("Changed property "+ theParms[i] as string +" from "+ oldValuePair[2] as string + " to " + theVals[i] as string + "\n")
+					)
+				)
+				catch 
+				(
+					print ("Couldn't set the property " + theParms[i] as string+ " for this shader!\n" )
+				)
+			)
 		)
 		else
 		(
