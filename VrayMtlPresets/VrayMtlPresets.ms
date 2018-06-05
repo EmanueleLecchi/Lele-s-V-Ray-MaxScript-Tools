@@ -8,18 +8,6 @@ extends:VRayMtl replaceUI:false version:1
 	local	presetNameRoll
 	local	currPresetNum=1
 	
-	fn getOwner =
-	(
-		local deps = for m in (refs.dependents delegate) where classOf m == BRDF_Mixer collect m
-		if deps.count == 0 then undefined else deps[1]	
-	)
-	/* Returns the name of the material that owns this instance           *********Tijn**********				*/ 
-	fn getOwnerName =
-	(
-		local owner = getOwner()
-		if owner == undefined then "" else owner.name
-	)
-	
 	/* refreshes the presets dropdown list reading it from disk*/
 	fn populateList = 
 	(
@@ -42,7 +30,7 @@ extends:VRayMtl replaceUI:false version:1
 		)
 		
 		presetFilename = presetPath + presetName + ".BRDF_Mixer_Preset.txt"
-		thePresetFile = openFile presetFilename mode:"w+"
+		thePresetFile = openFile presetFilename mode:"w"
 		for p in valuePairArray do
 			format "%\n%\n" p[1] p[2] to:thePresetFile
 		close thePresetFile
@@ -55,6 +43,12 @@ extends:VRayMtl replaceUI:false version:1
 			editText presetNameEdt "" pos:[8,8] width:128 height:16 
 			button presetSaveBtn "Save" pos:[144,8] width:32 height:16
 			
+			on presetNameEdt entered txt do
+			(
+				savePresetFile()
+				presetsRoll.presetsDdl.items=populateList()
+				destroyDialog presetNameRoll
+			)
 			on presetSaveBtn pressed do
 			(
 				savePresetFile()
@@ -72,9 +66,9 @@ extends:VRayMtl replaceUI:false version:1
 		theFileName=(presetPath+presetName+".BRDF_Mixer_Preset.txt")
 		if doesFileExist theFileName then 
 		(
+			Print (presetname + " Preset File Found")
 			theParms=#()
 			theVals=#()
-			owner = getOwnerName()			
 			theFile=openFile theFileName mode:"r"
 			seek theFile 0
 			while not (eof theFile) do
@@ -83,6 +77,7 @@ extends:VRayMtl replaceUI:false version:1
 				append theVals (execute (readLine theFile))
 			)
 			close theFile
+			print "Applying Preset Values"
 			for i=1 to theParms.count do 
 			(
 				try 
@@ -111,32 +106,27 @@ extends:VRayMtl replaceUI:false version:1
 	
 	)
 	
-	rollout presetsRoll "Presets Manager:" width:328 height:744 rolledup:false
+	rollout presetsRoll "Presets Manager:" width:328 height:72
 	(
-		dropDownList presetsDdl "" pos:[112,8] width:208 height:21
-		label lbl1 "Presets:" pos:[8,8] width:88 height:16
-		button saveBtn"Save Current as Material Preset" pos:[8,40] width:280 height:24
-		button refreshBtn "R" pos:[296,40] width:24 height:24 
-		button browseBtn "Open Presets Folder" pos:[8,72] width:312 height:24
+		label 'lbl1' "Presets:" pos:[8,12] width:40 height:20 align:#left
+		dropdownList 'presetsDdl' "" pos:[56,8] width:220 height:20 align:#left tooltip:"Applies a preset on selection" selection:-1
+		button 'refreshBtn' "R" pos:[278,8] width:20 height:20 align:#left tooltip:"Refreshes the presets list"
+		button 'browseBtn' "O" pos:[300,8] width:20 height:20 align:#left tooltip:"Opens the presets Folder"
+		button 'saveBtn' "Save Current as Material Preset" pos:[8,36] width:312 height:28 align:#left tooltip:"Saves the current material settings to a preset file with a name of your choice."
 		
-		on presetsRoll open do 
+		on presetsRoll open do
 		(
 			try (presetsDdl.items=populateList())
 			catch()
 		)
-		on presetsDdl selected sel do 
+		on presetsDdl selected sel do
 		(
 			applyUserPreset sel
 		)
-		on saveBtn pressed do 
+		on saveBtn pressed do
 		(
 			savePreset()
 			try (presetsDdl.items=populateList())
-			catch()
-		)
-		on browseBtn pressed do 
-		(
-			try (ShellLaunch (getDir #plugCfg + @"\BDRF_Mixer_Presets\") "")
 			catch()
 		)
 		on refreshBtn pressed do
@@ -144,7 +134,12 @@ extends:VRayMtl replaceUI:false version:1
 			
 			try (presetsDdl.items=populateList())
 			catch()
-		)			
+		)
+		on browseBtn pressed do
+		(
+			try (ShellLaunch (getDir #plugCfg + @"\BDRF_Mixer_Presets\") "")
+			catch()
+		)
 	)
 	
 )
