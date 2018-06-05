@@ -57,6 +57,7 @@ extends:VRayMtl replaceUI:false version:1
 			)
 		)
 		createDialog presetNameRoll
+		setFocus presetNameRoll.presetNameEdt 
 	)
 	/* ap[lies the chose preset values to the controls*/
 	fn applyUserPreset sel=
