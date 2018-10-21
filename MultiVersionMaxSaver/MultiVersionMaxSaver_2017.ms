@@ -138,9 +138,9 @@
 			for m=1 to inputMaxFiles.count do
 			(
 				windows.processPostedMessages()
-				loadMaxFile theMaxFiles[m] useFileUnits:true quiet:true
-				savePreviousMaxVersions theMaxFiles[m] ckb1.checked ckb2.checked ckb3.checked
-				pb1.progress=(m as float / theMaxFiles.count)*100.0
+				loadMaxFile inputMaxFiles[m] useFileUnits:true quiet:true
+				savePreviousMaxVersions inputMaxFiles[m] ckb1.checked ckb2.checked ckb3.checked
+				pb1.progress=(m as float / inputMaxFiles.count)*100.0
 			)
 			lbl1.text += "\n\n ALL DONE!"
 		)
