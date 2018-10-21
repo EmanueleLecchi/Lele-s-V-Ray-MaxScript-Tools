@@ -138,6 +138,7 @@
 			for m=1 to inputMaxFiles.count do
 			(
 				windows.processPostedMessages()
+				setVRaySilentMode()
 				loadMaxFile inputMaxFiles[m] useFileUnits:true quiet:true
 				savePreviousMaxVersions (maxFilePath+maxFileName) ckb1.checked ckb2.checked ckb3.checked
 				pb1.value=(m as float / inputMaxFiles.count)*100.0
