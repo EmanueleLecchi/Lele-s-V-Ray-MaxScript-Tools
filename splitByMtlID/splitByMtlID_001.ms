@@ -15,7 +15,7 @@
 	
 
 	--find nodes which have a multiSub material
-	msNodes=for g in geometry where (classof g.material == multisubMaterial) and classOf g != forest_Pro collect g
+	msNodes=for g in geometry where classOf g != forest_Pro and classOf g != vrayProxy and classOf g != targetObject and (classof g.material == multisubMaterial) collect g
 	totCount=msNodes.count
 	if msNodes.count !=0 do
 	(	
