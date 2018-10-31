@@ -49,14 +49,22 @@
 						newName=filterNameStrings (n.name+"_mtlID_"+ mtlID as string)
 						--find  the right m/s material
 						newMat=undefined
-						for id=1 to msMat.materialIDList.count where msMat.materialIDList[id]==mtlID do newMat=msMat[id]				
+						for id=1 to msMat.materialIDList.count where msMat.materialIDList[id]==mtlID do newMat=msMat.materialList[id]				
 						--select and detach faces
 						n.selectByMaterial mtlID clearCurrentSelection:true
 						selFaces=(polyOp.getfaceSelection n)
 						polyop.detachFaces n selFaces delete:true asNode:true name:newName
 						-- assign the material to the new node
-						execute ("$"+newName+".material=newMat")
-						print ("\t\t" + newName)
+						if newMat!=undefined then 
+						(
+							execute ("$"+newName+".material=newMat")
+							print ("\t\t" + newName + " ---> " + newMat.name)
+						)
+						else
+						(
+							print (newName + " has no material to be assigned for ID #" + mtlID as string)
+						)
+					
 					)
 				if (polyop.getNumFaces n==0) do delete n
 				freeSceneBitmaps()
@@ -67,3 +75,4 @@
 		print ("Processing of the scene took " + ((timeStamp()-st)/1000.) as string )
 	)
 )
+
