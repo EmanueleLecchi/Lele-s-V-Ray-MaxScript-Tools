@@ -201,27 +201,9 @@
 							--create and assign sun widget
 							ASun = Sun_Positioner name:(ASky.name+"_SunPositioner") --no need for a uniqueName, as the sky only supports one locator, and its name was already unique
 							try (ASun.parent = VRSun.parent) catch()
-							try ((ASun.position.controller=VRSun.target.position.controller)) catch (ASun.position=VRSun.target.position) --DON'T ASK...
+							try (ASun.position=VRSun.target.position) catch (ASun.position=VRSun.position) --DON'T ASK...
 							ASun.mode=0
-							try 
-							(
-								ASun.manual_sun_position.controller=Point3_XYZ()
-								for k=1 to VRSun.position.controller.keys.count do
-								(
-									addNewKey ASun.manual_sun_position.controller.X.controller.keys VRSun.position.controller.X_Position.controller.keys[k].time
-									ASun.manual_sun_position.controller.X.controller.keys[k].value = VRSun.position.controller.X_Position.controller.keys[k].value 
-									
-									addNewKey ASun.manual_sun_position.controller.Y.controller.keys VRSun.position.controller.Y_Position.controller.keys[k].time
-									ASun.manual_sun_position.controller.Y.controller.keys[k].value = VRSun.position.controller.Y_Position.controller.keys[k].value 
-									
-									addNewKey ASun.manual_sun_position.controller.Z.controller.keys VRSun.position.controller.Z_Position.controller.keys[k].time
-									ASun.manual_sun_position.controller.Z.controller.keys[k].value = VRSun.position.controller.Z_Position.controller.keys[k].value 
-								)
-							)
-							catch
-							(
-								ASun.manual_sun_position = VRSun.position
-							)
+							ASun.manual_sun_position = VRSun.position
 							ASky.sun_position_object = ASun
 						)
 						3 :	--Hosek
@@ -243,7 +225,7 @@
 						aSky.turbidity = VRSun.sun_turbidity
 						aSky.intensity = VRSun.sun_intensity_multiplier
 						aSky.ground_albedo = VRSun.ground_albedo
-						aSky.sun_size = VRSun.sun_size_multiplier
+						aSky.sun_size = 0.51*VRSun.sun_size_multiplier
 						aSky.sun_tint = VRSun.sun_filter_color
 					)
 					else --Pretham model, AD map
@@ -264,7 +246,7 @@
 					aSky.turbidity = VRS.sun_turbidity
 					aSky.intensity = VRS.sun_intensity_multiplier
 					aSky.ground_albedo = VRS.ground_albedo
-					aSky.sun_size = VRS.sun_size_multiplier
+					aSky.sun_size = 0.51*VRS.sun_size_multiplier
 					aSky.sun_tint = VRS.sun_filter_color
 				)
 			)
@@ -272,6 +254,7 @@
 		try (delete VRSun) catch ()		
 		try (delete VRS.sun_node) catch ()
 		try (replaceInstances VRS ASky) catch (append leftOverSkies VRS)
+		
 	)
 
 	fn convertBlend vM matA matB =  
@@ -846,7 +829,7 @@
 		VRaySun
 		*/
 		-- Arnold Light creation
-		AL=Arnold_Light name:(uniquename(VL.name + "_Converted_")) exposure:0 normalize:off useColor:on intensity:666
+		AL=Arnold_Light name:(uniquename(VL.name + "_Converted_")) exposure:0 normalize:off useColor:on intensity:666 
 		--ArnoldLight Common Properties
 		--On		
 		try (AL.on=VL.on) catch (AL.on=VL.enabled)
