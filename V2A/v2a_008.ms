@@ -125,7 +125,7 @@
 					3 :	--Hosek
 					(
 -- 						print "hosek"
-						aSky = ai_physical_sky name:(uniquename(VRS.name + "_Converted_")) use_degrees:false enable_sun:true
+						aSky = ai_physical_sky name:(uniquename(VRS.name + "_Converted_")) use_degrees:true enable_sun:true
 						isAISky = true
 					)
 					default : --CIE models: how to?
@@ -151,7 +151,9 @@
 -- 					print "Sun node specified"
 					if isAISky then
 					(
-						aSky.sun_direction = VRS.sun_node.dir
+						ASky.azimuth = acos VRS.sun_node.dir[2]
+						ASky.elevation = acos VRS.sun_node.dir[1]
+-- 						aSky.sun_direction = VRS.sun_node.dir
 					)
 					else
 					(
@@ -258,6 +260,11 @@
 		try (delete VRSun) catch ()		
 		try (delete VRS.sun_node) catch ()
 		try (replaceInstances VRS ASky) catch (append leftOverSkies VRS)
+		if isAiSky do 
+		( 
+			try (environmentMap = ASky) --force this so that it doesn't break 
+			catch ()
+		)
 		
 	)
 
@@ -1464,8 +1471,8 @@
 			arnoldRenderer.indirect_sample_clamp=if (itsVray renderers.current) and vrayRenderer.options_maxRayIntensity_on then vrayRenderer.options_maxRayIntensity else 10000000.0
 			arnoldRenderer.legacy_3ds_max_map_support = true
 			arnoldRenderer.GI_diffuse_depth = if maxDiffuseDepth!=0 then maxDiffuseDepth else 3
-			arnoldRenderer.GI_specular_depth = maxReflectionDepth
-			arnoldRenderer.GI_transmission_depth = maxRefractionDepth
+			arnoldRenderer.GI_specular_depth = if maxReflectionDepth != 0 then maxReflectionDepth else 5
+			arnoldRenderer.GI_transmission_depth = if maxRefractionDepth != 0 then maxRefractionDepth else 5
 			arnoldRenderer.GI_total_depth = arnoldRenderer.GI_specular_depth + arnoldRenderer.GI_transmission_depth
 			arnoldRenderer.auto_transparency_depth = arnoldRenderer.GI_total_depth
 			arnoldRenderer.bucket_size = 16 --you'll thank me later.
