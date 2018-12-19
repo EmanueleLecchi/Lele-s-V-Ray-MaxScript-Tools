@@ -170,7 +170,7 @@
 				if isAISky then --Hosek Model, Arnold Physical Sky
 				(
 					aSky.turbidity = VRS.sun_turbidity
-					aSky.intensity = VRS.sun_intensity_multiplier
+					aSky.intensity = VRS.sun_intensity_multiplier * 150.0 -- arbitrary measured multiplier.
 					aSky.ground_albedo = VRS.ground_albedo
 					aSky.sun_size = VRS.sun_size_multiplier
 					aSky.sun_tint = VRS.sun_filter_color
@@ -209,31 +209,35 @@
 						3 :	--Hosek
 						(
 							print "Hosek"
-							ASky = ai_physical_sky name:(uniquename(VRS.name + "_Converted_")) use_degrees:off 
+							ASky = ai_physical_sky name:(uniquename(VRS.name + "_Converted_")) use_degrees:on 
 							isAISky = true
-							ASky.sun_direction=VRSun.dir
+							ASky.azimuth = acos VRSun.dir[2]
+							ASky.elevation = acos VRSun.dir[1]
+-- 							ASky.sun_direction=VRSun.dir
 						)
 						default : --CIE models: how to?
 						(
 							
 						)
 					)	
+					
+					
 					--Now copy all the relevant properties over from the SUN
 					--isAISky determines the code path for Preetham or Hosek, going towards one or the other sky map type.
 					if isAISky then --Hosek Model, Arnold Physical Sky
 					(
-						aSky.turbidity = VRSun.sun_turbidity
-						aSky.intensity = VRSun.sun_intensity_multiplier
+						aSky.turbidity = VRSun.turbidity
+						aSky.intensity = VRSun.intensity_multiplier * 150.0
 						aSky.ground_albedo = VRSun.ground_albedo
-						aSky.sun_size = 0.51*VRSun.sun_size_multiplier
-						aSky.sun_tint = VRSun.sun_filter_color
+						aSky.sun_size = 0.51*VRSun.size_multiplier
+						aSky.sun_tint = VRSun.filter_color
 					)
 					else --Pretham model, AD map
 					(
-						aSky.global_intensity = VRSun.sun_intensity_multiplier
+						aSky.global_intensity = VRSun.intensity_multiplier
 						aSky.ground_color = VRSun.ground_albedo
-						aSky.sun_disc_scale = VRSun.sun_size_multiplier
-						aSky.tint = VRSun.sun_filter_color
+						aSky.sun_disc_scale = VRSun.size_multiplier
+						aSky.tint = VRSun.filter_color
 						--The model shows no other parameter that can be copied across.
 					)
 				)
@@ -244,7 +248,7 @@
 					--settings taken from the MAP, ofc.
 					--Now copy all the relevant properties over from the sky MAP
 					aSky.turbidity = VRS.sun_turbidity
-					aSky.intensity = VRS.sun_intensity_multiplier
+					aSky.intensity = VRS.sun_intensity_multiplier * 150.0
 					aSky.ground_albedo = VRS.ground_albedo
 					aSky.sun_size = 0.51*VRS.sun_size_multiplier
 					aSky.sun_tint = VRS.sun_filter_color
