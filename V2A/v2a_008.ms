@@ -158,27 +158,10 @@
 						VRSun=VRS.sun_node
 						ASun = Sun_Positioner name:(ASky.name+"_SunPositioner") --no need for a uniqueName, as the sky only supports one locator, and its name was already unique
 						try (ASun.parent = VRSun.parent) catch()
-						try ((ASun.position.controller=VRSun.target.position.controller)) catch (try (ASun.position=VRSun.target.position) catch (ASun.position=VRSun.position)) --DON'T ASK...
+						try (ASun.position=VRSun.target.position) catch (ASun.position=VRSun.position) --DON'T ASK...
 						ASun.mode=0
-						try 
-						(
-							ASun.manual_sun_position.controller=Point3_XYZ()
-							for k=1 to VRSun.position.controller.keys.count do
-							(
-								addNewKey ASun.manual_sun_position.controller.X.controller.keys VRSun.position.controller.X_Position.controller.keys[k].time
-								ASun.manual_sun_position.controller.X.controller.keys[k].value = VRSun.position.controller.X_Position.controller.keys[k].value 
-								
-								addNewKey ASun.manual_sun_position.controller.Y.controller.keys VRSun.position.controller.Y_Position.controller.keys[k].time
-								ASun.manual_sun_position.controller.Y.controller.keys[k].value = VRSun.position.controller.Y_Position.controller.keys[k].value 
-								
-								addNewKey ASun.manual_sun_position.controller.Z.controller.keys VRSun.position.controller.Z_Position.controller.keys[k].time
-								ASun.manual_sun_position.controller.Z.controller.keys[k].value = VRSun.position.controller.Z_Position.controller.keys[k].value 
-							)
-						)
-						catch
-						(
-							ASun.manual_sun_position = VRSun.position
-						)
+						print "manual sun positioning"
+						ASun.manual_sun_position = VRSun.position
 						ASky.sun_position_object = aSun
 					)
 				)
@@ -395,7 +378,7 @@
 			-- if it has  two IoRs use the arnold path
 			if (classOf parentMat == vrayMtl and (parentMat.reflection != black or parentMat.texmap_reflection != undefined) and not parentMat.reflection_lockIOR) do 
 			(
-				print "unlocked IoRs"
+-- 				print "unlocked IoRs"
 				useADMaterials = false
 			)			
 
@@ -410,7 +393,7 @@
 			-- However if it is refractive, we NEED the arnold path lest no light shines through.
 			if (classOf parentMat == vrayMtl and (parentMat.refraction != black or parentMat.texmap_refraction != undefined)) do
 			(
-				print "refractive"
+-- 				print "refractive"
 				useADMaterials = false
 			)
 			if useADMaterials then --convert to AD shaders where possible (Physmat etc.)
