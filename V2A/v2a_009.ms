@@ -659,6 +659,14 @@
 			-- Shared conversion code
 			case theClass of
 			(
+				vrayMtl :
+				(
+					--PLACEHOLDER
+				)
+				vrayLightMtl :
+				(
+					--PLACEHOLDER
+				)
 				VrayFastSSS2 : 
 				(
 -- 					convert to physical material
