@@ -434,8 +434,8 @@
 		WBdImageArray=#()
 		
 		WBdImage = bitmap renderwidth renderheight hdr:true
--- 		WBdTotRef = bitmap renderwidth renderheight hdr:true
--- 		WBdTotDiffuse = bitmap renderwidth renderheight hdr:true
+		WBdTotRef = bitmap renderwidth renderheight hdr:true
+		WBdTotDiffuse = bitmap renderwidth renderheight hdr:true
 
 		for y=1 to renderHeight do
 		(
@@ -462,8 +462,8 @@
 				append WBdImageArray theWBdPixel
 				theWBdPixel=theWBdPixel as color				
 				setPixels  WBdImage [x-1,y-1] #(theWBdPixel)
--- 				setPixels  WBdTotRef [x-1,y-1] #(theWBdTotRefPixel)
--- 				setPixels  WBdTotDiffuse [x-1,y-1] #(theWBdRTLPixel)
+				setPixels  WBdTotRef [x-1,y-1] #(theWBdTotRefPixel)
+				setPixels  WBdTotDiffuse [x-1,y-1] #(theWBdRTLPixel)
 				
 				
 			)
@@ -475,8 +475,8 @@
 			WBdImage.filename= maxFilePath + @"exposimeter_renders\"+(getfilenamefile maxfilename)+"_off_off_" + (frameNum.frame as integer) as string + ".exr"
 			save WBdImage
 		)
--- 		display WBdTotRef caption:"White-Balanced Total Raw Reflection"
--- 		display WBdTotDiffuse caption:"White-Balanced Diffuse * RTL"
+		display WBdTotRef caption:"White-Balanced Total Raw Reflection"
+		display WBdTotDiffuse caption:"White-Balanced Diffuse * RTL"
 		
 	)
 	
@@ -498,11 +498,11 @@
 		print ("pixels gathered and converted in " +  (theTimer/1000.0)as string + " s." )
 		print ("Milliseconds per pixel: " + ( theTimer as float/totPixelCount)as string )
 			
--- 		st=timestamp()	
--- 		calculateWBValues false false false													-- options: consider BG -> use BG weights -> invert BG weights
--- 		theTimer=timestamp()-st
--- 		print ("White Balance calculated in " + (theTimer/1000.0) as string + " s.")
--- 		print ("Milliseconds per pixel: " + ( theTimer as float/totPixelCount) as string )
+		st=timestamp()	
+		calculateWBValues false false false													-- options: consider BG -> use BG weights -> invert BG weights
+		theTimer=timestamp()-st
+		print ("White Balance calculated in " + (theTimer/1000.0) as string + " s.")
+		print ("Milliseconds per pixel: " + ( theTimer as float/totPixelCount) as string )
 -- 		
 		st=timestamp()	
 		calculateExposedValues false false false												-- options: consider BG -> use BG weights -> invert BG weights
