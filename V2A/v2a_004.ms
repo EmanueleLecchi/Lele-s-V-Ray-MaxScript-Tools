@@ -1,0 +1,1187 @@
+(
+	/*
+	"Simple" scene converter from V-Ray to Arnold
+	Lights: they should all be translatable, minus perhaps a few inferred properties (f.e. exposure in A's).
+	Materials: Translate to PhysicalMaterial.
+	Maps: most should be directly pluggable at the root. This may turn out to be the most laborious part, however.
+	*/
+	
+	/*
+	Addendum for v004+
+	Lights: 
+		*) Spherical could be created as mesh light and an implicit sphere (@ the origin, hide.) // V004 Done with sphere, and changed later to point with a radius > 0.
+		*) Omni, spot and parallel need conversion from Max's own. //v 004 done.
+	Materials:
+		*) The Physical Material doesn't allow for caustics, and roughness is one instead of two parameters, making it unsuited  for most cases with refractive components. //v004 done. 
+			for m in allMats do convertVrayMtl m TRUE 
+			inside fn convertAllSceneMaterials
+		*) The binary blend is now superseded by an eight layer shader. convert to that //v004 done. up to 8 layers, in BLEND mode use the layered shader. above 8, or additive, use the binary method
+	Exposure: 
+		*) I still have no clue as to why it's misbehaving intermittently. Need to work on it more.
+	*/
+
+	local allMats = #()
+	local leftOverMats = #()
+	local allLights = #()
+	local leftOverLights = #()
+	local allCameras  = #()
+	local leftOverCameras = #()
+	
+	local maxRefractionDepth = 0
+	local maxReflectionDepth = 0
+	local maxDiffuseDepth = 0
+	
+	local ArnoldRenderer = arnold()
+	
+	fn bakeMapInfluence inMap influenceAmt baseColor=
+	(
+		if inMap != undefined then
+		(
+			if  influenceAmt==100.0 then 
+			(
+				outMap = inMap 
+			)
+			else
+			(
+				multA=output map1:inMap 
+				multA.output.output_amount=(influenceAmt/100.0)
+				multB=VrayColor color:baseColor rgb_multiplier:(1.0-(influenceAmt/100.0))
+				outMap = vrayCompTex sourceA:multA sourceB:multB
+			)	
+		)
+		else
+		(
+			outMap=undefined
+		)
+		outMap
+	)	
+	
+	fn convertBlend vM matA matB =  
+	(
+		aM=ai_mix_shader name:(uniquename(vM.name+"_Converted_"))
+		aM.mode=vM.additiveMode
+		aM.shader1 = matA[2]
+		aM.shader2 = matB[2]
+		if matB[4]!= undefined then 
+		(
+			if  matB[5]==100.0 then 
+			(
+				aM.Mix_shader = matB[4] 
+			)
+			else
+			(
+				multA=output map1:matB[4] 
+				multA.output.output_amount=(matB[5]/100.0)
+				multB=VrayColor color:matB[3] rgb_multiplier:(1.0-(matB[5]/100.0))
+				aM.Mix_shader = vrayCompTex sourceA:multA sourceB:multB
+			)
+		)
+		else 
+		(
+			aM.Mix_shader = VrayColor color:matB[3]
+		)
+		aM
+	)
+	
+	fn convert8Layers vM matsArray=
+	(
+		aM=ai_layer_shader name:(uniquename(vM.name+"_Converted_"))
+		--I wish i could do this procedurally, alas i can't as i'd have to execute() material names which may lead to a number of unintended consequences.
+		--for lack of ideas, i'll list each layer and treat them as the ought to.
+		if matsArray[1] != undefined do
+		(
+			aM.enable1=matsArray[1][1]
+			aM.input1=matsArray[1][2]
+			aM.mix1_shader = bakeMapInfluence matsArray[1][4] matsArray[1][5] matsArray[1][3]
+			aM.mix1=1.0
+		)
+		if matsArray[2] != undefined do
+		(
+			aM.enable2=matsArray[2][1]
+			aM.input2=matsArray[2][2]
+			aM.mix2_shader = bakeMapInfluence matsArray[2][4] matsArray[2][5] matsArray[2][3]
+			aM.mix2=1.0
+		)
+		if matsArray[3] != undefined do
+		(
+			aM.enable3=matsArray[3][1]
+			aM.input3=matsArray[3][2]
+			aM.mix3_shader = bakeMapInfluence matsArray[3][4] matsArray[3][5] matsArray[3][3]
+			aM.mix3=1.0
+		)
+		if matsArray[4] != undefined do
+		(
+			aM.enable4=matsArray[4][1]
+			aM.input4=matsArray[4][2]
+			aM.mix4_shader = bakeMapInfluence matsArray[4][4] matsArray[4][5] matsArray[4][3]
+			aM.mix4=1.0
+		)
+		if matsArray[5] != undefined do
+		(
+			aM.enable5=matsArray[5][1]
+			aM.input5=matsArray[5][2]
+			aM.mix5_shader = bakeMapInfluence matsArray[5][4] matsArray[5][5] matsArray[5][3]
+			aM.mix5=1.0
+		)
+		if matsArray[6] != undefined do
+		(
+			aM.enable6=matsArray[6][1]
+			aM.input6=matsArray[6][2]
+			aM.mix6_shader = bakeMapInfluence matsArray[6][4] matsArray[6][5] matsArray[6][3]
+			aM.mix6=1.0
+		)
+		if matsArray[7] != undefined do
+		(
+			aM.enable7=matsArray[7][1]
+			aM.input7=matsArray[7][2]
+			aM.mix7_shader = bakeMapInfluence matsArray[7][4] matsArray[7][5] matsArray[7][3]
+			aM.mix7=1.0
+		)
+		if matsArray[8] != undefined do
+		(
+			aM.enable8=matsArray[8][1]
+			aM.input8=matsArray[8][2]
+			aM.mix8_shader = bakeMapInfluence matsArray[8][4] matsArray[8][5] matsArray[8][3]
+			aM.mix8=1.0
+		)
+		aM
+	)
+
+	fn convertVrayMtl parentMat useADMaterials=
+	(
+		/*
+		No need to convert MultiSub mtl
+		Convert VrayMtl to PhysicalMaterial
+		Blend Materials: Arnold's mix shader only has 2 entries. Will need parsing the VrayBlend and ensure i make enough nested mix shaders in arnold.
+		*/
+
+		if superClassOf parentMat==material do
+		(
+			if useADMaterials then --convert to AD shaders where possible (Physmat etc.)
+			(
+				theClass=(classof parentMat)
+-- 				print theClass
+				case theClass of
+				(
+					vrayBlendMtl : 
+					(
+						matsArray=#()
+						append matsArray #(on, parentMat.baseMtl, white, undefined, 100.0)
+						for i=1 to parentMat.coatMtl.count where parentMat.coatMtl[i]!=undefined do
+						(
+							append matsArray #(parentMat.coatMtl_enable[i], parentMat.coatMtl[i], parentMat.blend[i], parentMat.texMap_Blend[i], parentMat.texmap_blend_multiplier[i])
+						)
+						if matsArray.count == 0 then print "empty blend material!?"
+						else if matsArray.count > 0 and matsArray.count <= 8 and not parentMat.additiveMode then
+						(
+							replaceinstances parentMat (convert8Layers parentMat matsArray)
+						)
+						else if matsArray.count > 8 or parentMat.additiveMode then
+						(
+							-- create the first blend with the first two materials in it, and Add to an array! 
+							AMarray=#()
+							append AMarray #(parentMat.coatMtl_enable[1], (convertBlend parentMat matsArray[1] matsArray[2]), parentMat.blend[1], parentMat.texMap_Blend[1], parentMat.texmap_blend_multiplier[1])
+							for i = 3 to matsArray.count do -- for each successive material to blend, we need to pipe in the previous one into a new blend
+							(
+								append AMarray #(parentMat.coatMtl_enable[i], (convertBlend parentMat AMarray[i-2] matsArray[i]), parentMat.texMap_Blend[i], parentMat.texmap_blend_multiplier[i])
+							)
+							replaceinstances parentMat AMarray[AMarray.count][2]
+						)
+					)
+					vrayMtl : 
+					(
+						APM=physicalMaterial name:(uniquename(parentMat.name+"_Converted_")) base_weight:1 reflectivity:1 roughness_inv:on transparency:0 trans_color:black trans_roughness_lock:off trans_roughness_inv:on emission:1 emit_color:black material_mode:1
+						--diffuse part
+						APM.baseColor=parentMat.diffuse
+						APM.base_color_map_on = parentMat.texmap_diffuse_on
+						APM.base_color_map = bakeMapInfluence parentMat.texmap_diffuse parentMat.texmap_diffuse_multiplier parentMat.diffuse
+						APM.diff_roughness = parentMat.diffuse_roughness
+						APM.diff_rough_map_on =	parentMat.texmap_roughness_on
+						colVal=parentMat.diffuse_roughness
+						APM.diff_rough_map = bakeMapInfluence parentMat.texmap_roughness parentMat.texmap_roughness_multiplier (([colVal,colVal,colVal,1] as point4) as color)
+						--emission part
+						APM.emit_color = parentMat.selfIllumination
+						APM.emit_color_map_on = parentMat.texmap_self_illumination_on
+						APM.emit_color_map = bakeMapInfluence parentMat.texmap_selfIllumination parentMat.texmap_selfIllumination_multiplier parentMat.selfIllumination
+						APM.emit_luminance = parentMat.selfIllumination_multiplier*477.464
+						--reflection part
+						APM.refl_color = parentMat.Reflection
+						APM.refl_color_map_on = parentMat.texmap_Reflection_on
+						APM.refl_color_map = bakeMapInfluence parentMat.texmap_Reflection parentMat.texmap_Reflection_multiplier parentMat.Reflection
+						APM.roughness = parentMat.reflection_glossiness --already inverted the meaning of the physmat roughness on creation
+						APM.roughness_map_on = parentMat.texmap_reflectionglossiness_on 
+						colVal=parentMat.reflection_glossiness
+						APM.roughness_map = bakeMapInfluence parentMat.texmap_reflectionglossiness parentMat.texmap_reflectionglossiness_multiplier (([colVal,colVal,colVal,1] as point4) as color)
+						--IoR logic
+						(
+							if not parentMat.reflection_fresnel	then
+							(
+								APM.trans_ior = 50
+							)
+							else
+							(
+								if parentMat.reflection_lockIOR then 
+								(
+									APM.trans_ior = parentMat.refraction_ior 
+									APM.trans_ior_map_on = parentMat.texmap_refractionior_on
+									colVal= parentMat.refraction_ior 
+									APM.trans_ior_map = bakeMapInfluence parentMat.texmap_refractionior parentMat.texmap_refractionior_multiplier (([colVal,colVal,colVal,1] as point4) as color)
+								)
+								else
+								(
+									if parentMat.reflection != black then 
+									(
+										APM.trans_ior = parentMat.reflection_ior 
+										APM.trans_ior_map_on = parentMat.texmap_reflectionior_on
+										colVal = parentMat.reflection_ior 
+										APM.trans_ior_map = bakeMapInfluence parentMat.texmap_reflectionior parentMat.texmap_reflectionior_multiplier (([colVal,colVal,colVal,1] as point4) as color)
+									)
+									else 
+									(
+										APM.trans_ior = parentMat.refraction_ior 
+										APM.trans_ior_map_on = parentMat.texmap_refractionior_on
+										colVal= parentMat.refraction_ior 
+										APM.trans_ior_map = bakeMapInfluence parentMat.texmap_refractionior parentMat.texmap_refractionior_multiplier (([colVal,colVal,colVal,1] as point4) as color)
+									)
+								)
+							)
+						)
+						
+						APM.metalness = parentMat.reflection_metalness	
+						APM.metalness_map_on = parentMat.texmap_metalness_on
+						colVal = parentMat.reflection_metalness
+						APM.metalness_map = bakeMapInfluence parentMat.texmap_metalness parentMat.texmap_metalness_multiplier (([colVal,colVal,colVal,1] as point4) as color)
+						-- Refraction Part
+						APM.transparency = if parentMat.refraction!=black then 1.0 else 0.0
+						APM.trans_color = parentMat.refraction
+						APM.trans_color_map_on = parentMat.texmap_refraction_on
+						APM.trans_color_map = bakeMapInfluence parentMat.texmap_refraction parentMat.texmap_refraction_multiplier parentMat.refraction
+						APM.trans_roughness = parentMat.refraction_glossiness --already inverted the meaning of the physmat roughness on creation
+						APM.trans_rough_map_on = parentMat.texmap_refractionglossiness_on 
+						colVal = parentMat.refraction_glossiness
+						APM.trans_rough_map = bakeMapInfluence parentMat.texmap_refractionglossiness parentMat.texmap_refractionglossiness_multiplier (([colVal,colVal,colVal,1] as point4) as color) 
+						--Anisotropy part
+						APM.anisotropy = parentMat.anisotropy+1.0
+						APM.anisotropy_map_on = parentMat.texmap_anisotropy_on
+						colVal = parentMat.anisotropy
+						APM.anisotropy_map = bakeMapInfluence parentMat.texmap_anisotropy parentMat.texmap_anisotropy_multiplier (([colVal,colVal,colVal,1] as point4) as color)
+						APM.anisoAngle = parentMat.anisotropy_rotation
+						APM.aniso_Angle_map_on = parentMat.texmap_anisotropy_rotation_on
+						colVal = parentMat.anisotropy_rotation
+						APM.aniso_Angle_map = bakeMapInfluence parentMat.texmap_anisotropy_rotation parentMat.texmap_anisotropy_rotation_multiplier (([colVal,colVal,colVal,1] as point4) as color)
+						APM.aniso_mode = parentMat.anisotropy_derivation
+						APM.aniso_channel = parentMat.anisotropy_channel
+						-- there is no Aniso Axis in the physmat.
+						--Bump Part
+						APM.bump_Map_on = parentMat.texmap_bump_on
+						APM.bump_map = parentMat.texmap_bump
+						APM.bump_map_amt = parentMat.texmap_bump_multiplier/100.
+						--Displacement Part
+						APM.displacement_map_on = parentMat.texmap_displacement_on
+						APM.displacement_map = parentMat.texmap_displacement
+						APM.displacement_map_amt = parentMat.texmap_displacement_multiplier
+						--Opacity Part
+						APM.cutout_map_on = parentMat.texmap_opacity_on
+						
+						APM.cutout_map = bakeMapInfluence parentMat.texmap_opacity parentMat.texmap_opacity_multiplier white
+
+						replaceInstances parentMat APM
+					)
+					vrayLightMtl : 
+					(
+						ALM=physicalMaterial name:(uniquename(parentMat.name+"_Converted_")) base_weight:0 reflectivity:0 material_mode:1 emission:1
+						ALM.emit_color = parentMat.color
+						ALM.emit_luminance = parentMat.multiplier*477.464 --Image multiplier to Luminance
+						ALM.emit_color_map = parentMat.texmap
+						ALM.cutout_map=parentMat.opacity_texmap
+						ALM.displacement_map_amt = parentMat.displacement_multiplier
+						ALM.displacement_map = parentMat.displacement_texmap
+						replaceInstances parentMat ALM
+					)
+					VrayFastSSS2 : 
+					(
+	-- 					convert to physical material
+						APM=physicalMaterial name:(uniquename(parentMat.name+"_Converted_")) base_weight:0 reflectivity:0 roughness_inv:on material_mode:1 scattering:1 
+						--Diffuse Part
+						APM.base_color = parentMat.diffuse_color
+						APM.base_color_map_on = parentMat.texmap_diffuse_color_on
+						APM.base_color_map = bakeMapInfluence parentMat.texmap_diffuse_color parentMat.texmap_diffuse_color_multiplier parentMat.diffuse_color
+						--Diffuse Weight
+						APM.base_weight = parentMat.diffuse_amount
+						APM.base_weight_map_on = parentMat.texmap_diffuse_amount_on
+						colVal=parentMat.diffuse_amount
+						APM.base_weight_map = bakeMapInfluence parentMat.texmap_diffuse_amount parentMat.texmap_diffuse_amount_multiplier (([colVal,colVal,colVal,1] as point4) as color)
+						--SSS Color
+						APM.sss_color = parentMat.sub_surface_color
+						APM.sss_color_map_on =  parentMat.texmap_sss_color_on
+						APM.sss_color_map = bakeMapInfluence parentMat.texmap_sss_color parentMat.texmap_sss_color_multiplier parentMat.sub_surface_color
+						--Scatter Color
+						APM.sss_scatter_color = parentMat.scatter_color
+						APM.sss_depth = parentMat.scatter_radius*parentMat.scale
+						APM.sss_scale = 1 --always set to 1, map with a texture in an output
+-- 						APM.sss_scale_map = vrayColor name:"sss_scale_map" color:white rgb_multiplier:parentMat.scale
+						--Specular Part
+						APM.refl_color = parentMat.specular_color
+						APM.refl_color_map_on = parentMat.texmap_specular_color_on
+						APM.refl_color_map = bakeMapInfluence parentMat.texmap_specular_color parentMat.texmap_specular_color_multiplier parentMat.specular_color
+						--Specular Amount
+						APM.reflectivity = parentMat.specular_amount
+						APM.reflectivity_map_on = parentMat.texmap_specular_amount_on
+						colVal = parentMat.specular_amount
+						APM.reflectivity_map = bakeMapInfluence parentMat.texmap_specular_amount parentMat.texmap_specular_amount_multiplier (([colVal,colVal,colVal,1] as point4) as color)
+						--Specular Glossiness
+						APM.roughness = parentMat.specular_glossiness --already inverted the meaning of the physmat roughness on creation
+						APM.roughness_map_on = parentMat.texmap_specular_glossiness_on 
+						colVal=parentMat.specular_glossiness
+						APM.roughness_map = bakeMapInfluence parentMat.texmap_specular_glossiness parentMat.texmap_specular_glossiness_multiplier (([colVal,colVal,colVal,1] as point4) as color)
+						--IoR
+						APM.trans_ior = parentMat.ior
+						--Opacity (using CutOff!)
+						APM.cutout_map_on = parentMat.texmap_opacity_on
+						APM.cutout_map = bakeMapInfluence parentMat.texmap_opacity parentMat.texmap_opacity_multiplier white
+						--Bump
+						APM.bump_Map_on = parentMat.texmap_bump_on
+						APM.bump_map = parentMat.texmap_bump
+						APM.bump_map_amt = parentMat.texmap_bump_multiplier/100.						
+						
+						replaceInstances parentMat APM
+					) 
+					VRay2SidedMtl : 
+					(
+	-- 					convert to ai_two_sided, which misses options
+						A2S=ai_two_sided name:(uniquename(parentMat.name+"_Converted_")) front:parentMat.frontMtl
+						if parentMat.backMtlOn then A2S.back = parentMat.backMtl else A2S.back = parentMat.frontMtl
+						replaceInstances parentMat A2S
+					)
+					default : 
+					(
+						print ("!!!!!!! " + theClass as string) 
+						append leftOverMats parentMat
+					)
+				)
+			)
+			else
+			(
+				-- converto to Arnold Shaders only (standard_suirface, AI_Surface etc.)
+				theClass=(classof parentMat)
+-- 				print theClass
+				case theClass of
+				(
+					vrayBlendMtl : 
+					(
+						matsArray=#()
+						append matsArray #(on, parentMat.baseMtl, white, undefined, 100.0)
+						for i=1 to parentMat.coatMtl.count where parentMat.coatMtl[i]!=undefined do
+						(
+							append matsArray #(parentMat.coatMtl_enable[i], parentMat.coatMtl[i], parentMat.blend[i], parentMat.texMap_Blend[i], parentMat.texmap_blend_multiplier[i])
+						)
+						if matsArray.count == 0 then print "empty blend material!?"
+						else if matsArray.count > 0 and matsArray.count <= 8 and not parentMat.additiveMode then
+						(
+							replaceinstances parentMat (convert8Layers parentMat matsArray)
+						)
+						else if matsArray.count > 8 or parentMat.additiveMode then
+						(
+							-- create the first blend with the first two materials in it, and Add to an array! 
+							AMarray=#()
+							append AMarray #(parentMat.coatMtl_enable[1], (convertBlend parentMat matsArray[1] matsArray[2]), parentMat.blend[1], parentMat.texMap_Blend[1], parentMat.texmap_blend_multiplier[1])
+							for i = 3 to matsArray.count do -- for each successive material to blend, we need to pipe in the previous one into a new blend
+							(
+								append AMarray #(parentMat.coatMtl_enable[i], (convertBlend parentMat AMarray[i-2] matsArray[i]), parentMat.texMap_Blend[i], parentMat.texmap_blend_multiplier[i])
+							)
+							replaceinstances parentMat AMarray[AMarray.count][2]
+						)
+					)
+					vrayMtl : 
+					(
+						ASS=ai_standard_surface name:(uniquename(parentMat.name+"_Converted_")) base:1 specular:0 transmission:0 subsurface:0 caustics:on indirect_specular:1
+						--diffuse part
+						try (ASS.base_color.controller=parentMat.diffuse.controller) catch (ASS.base_color=parentMat.diffuse)
+						ASS.base_color_connected = parentMat.texmap_diffuse_on
+						ASS.base_color_shader = bakeMapInfluence parentMat.texmap_diffuse parentMat.texmap_diffuse_multiplier parentMat.diffuse
+						ASS.diffuse_roughness = parentMat.diffuse_roughness
+						ASS.diffuse_roughness_connected = parentMat.texmap_roughness_on
+						colVal=parentMat.diffuse_roughness
+						ASS.diffuse_roughness_shader = bakeMapInfluence parentMat.texmap_roughness parentMat.texmap_roughness_multiplier (([colVal,colVal,colVal,1] as point4) as color)
+						--emission part
+						ASS.emission_color = parentMat.selfIllumination
+						ASS.emission_color_connected = parentMat.texmap_self_illumination_on
+						ASS.emission_color_shader = bakeMapInfluence parentMat.texmap_selfIllumination parentMat.texmap_selfIllumination_multiplier parentMat.selfIllumination
+						ASS.emission = parentMat.selfIllumination_multiplier
+						--reflection part
+						ASS.specular = if parentMat.Reflection!=black then 1.0 else 0.0
+						ASS.specular_color = parentMat.Reflection
+						ASS.specular_color_connected = parentMat.texmap_Reflection_on
+						ASS.specular_color_shader = bakeMapInfluence parentMat.texmap_Reflection parentMat.texmap_Reflection_multiplier parentMat.Reflection
+						ASS.specular_roughness_connected = parentMat.texmap_reflectionglossiness_on 
+						if parentMat.texmap_reflectionglossiness != undefined do
+						(
+							colVal=parentMat.reflection_glossiness
+							theSubMap=(bakeMapInfluence parentMat.texmap_reflectionglossiness parentMat.texmap_reflectionglossiness_multiplier (([colVal,colVal,colVal,1] as point4) as color))
+							theMap = output name:(uniqueName (parentMat.texmap_reflectionglossiness.name + "_Inverter_Map_")) map:theSubMap
+							theMap.output.invert=true
+							ASS.specular_roughness_shader = theMap
+							theMap = theSubMap = undefined
+						)
+						ASS.internal_reflections = parentMat.option_reflectOnBack
+						--IoR logic
+						(
+							if not parentMat.reflection_fresnel	then
+							(
+								ASS.specular_ior = 100000
+							)
+							else
+							(
+								if parentMat.reflection_lockIOR then 
+								(
+									ASS.specular_ior = parentMat.refraction_ior 
+									ASS.specular_ior_connected = parentMat.texmap_refractionior_on
+									colVal= parentMat.refraction_ior 
+									ASS.specular_ior_shader = bakeMapInfluence parentMat.texmap_refractionior parentMat.texmap_refractionior_multiplier (([colVal,colVal,colVal,1] as point4) as color)
+								)
+								else
+								(
+									if parentMat.reflection != black then 
+									(
+										ASS.specular_ior = parentMat.reflection_ior 
+										ASS.specular_ior_connected = parentMat.texmap_reflectionior_on
+										colVal = parentMat.reflection_ior 
+										ASS.specular_ior_shader = bakeMapInfluence parentMat.texmap_reflectionior parentMat.texmap_reflectionior_multiplier (([colVal,colVal,colVal,1] as point4) as color)
+									)
+									else 
+									(
+										ASS.specular_ior = parentMat.refraction_ior 
+										ASS.specular_ior_connected = parentMat.texmap_refractionior_on
+										colVal= parentMat.refraction_ior 
+										ASS.specular_ior_shader = bakeMapInfluence parentMat.texmap_refractionior parentMat.texmap_refractionior_multiplier (([colVal,colVal,colVal,1] as point4) as color)
+									)
+								)
+							)
+						)
+						
+						ASS.metalness = parentMat.reflection_metalness	
+						ASS.metalness_connected = parentMat.texmap_metalness_on
+						colVal = parentMat.reflection_metalness
+						ASS.metalness_shader = bakeMapInfluence parentMat.texmap_metalness parentMat.texmap_metalness_multiplier (([colVal,colVal,colVal,1] as point4) as color)
+						
+						maxReflectionDepth=if parentMat.reflection_maxDepth > maxReflectionDepth then parentMat.reflection_maxDepth else maxReflectionDepth
+						-- Refraction Part
+						ASS.transmission = if parentMat.refraction!=black then 1.0 else 0.0
+						ASS.transmission_color = parentMat.refraction
+						ASS.transmission_color_connected = parentMat.texmap_refraction_on
+						ASS.transmission_color_shader = bakeMapInfluence parentMat.texmap_refraction parentMat.texmap_refraction_multiplier parentMat.refraction
+						ASS.transmission_extra_roughness = 1.0 - parentMat.refraction_glossiness 
+						ASS.transmission_extra_roughness_connected = parentMat.texmap_refractionglossiness_on 
+						
+						if parentMat.texmap_refractionglossiness != undefined do
+						(
+							colVal = parentMat.refraction_glossiness
+							theSubMap=( bakeMapInfluence parentMat.texmap_refractionglossiness parentMat.texmap_refractionglossiness_multiplier (([colVal,colVal,colVal,1] as point4) as color) )
+							theMap = output name:(uniqueName (parentMat.texmap_refractionglossiness.name + "_Inverter_Map_")) map:theSubMap
+							theMap.output.invert=true
+							ASS.transmission_extra_roughness_shader = theMap
+							theMap = theSubMap = undefined
+						)
+						ASS.transmit_aovs= if parentMat.refraction_affectAlpha == 0 then off else on
+						ASS.transmission_dispersion = if parentMat.refraction_dispersion_on then parentMat.refraction_dispersion else 0
+						maxRefractionDepth=if parentMat.refraction_maxDepth > maxRefractionDepth then parentMat.refraction_maxDepth else maxRefractionDepth
+
+						--Anisotropy part
+						ASS.specular_anisotropy = (parentMat.anisotropy+1) / 2.0
+						ASS.specular_anisotropy_connected = parentMat.texmap_anisotropy_on
+						colVal = parentMat.anisotropy
+						ASS.specular_anisotropy_shader = bakeMapInfluence parentMat.texmap_anisotropy parentMat.texmap_anisotropy_multiplier (([colVal,colVal,colVal,1] as point4) as color)
+						ASS.specular_rotation = if parentMat.anisotropy_rotation == 0 then 0 else (mod parentMat.anisotropy_rotation 360)/360
+						ASS.specular_rotation_connected = parentMat.texmap_anisotropy_rotation_on
+						colVal = parentMat.anisotropy_rotation
+						ASS.specular_rotation_shader = bakeMapInfluence parentMat.texmap_anisotropy_rotation parentMat.texmap_anisotropy_rotation_multiplier (([colVal,colVal,colVal,1] as point4) as color)
+-- 						No Anisotropy mode in the ai_Standard_Surface
+-- 						ASS.aniso_mode = parentMat.anisotropy_derivation
+-- 						ASS.aniso_channel = parentMat.anisotropy_channel
+						-- there is no Aniso Axis in the physmat.
+						--Bump Part
+						ASS.normal_connected = parentMat.texmap_bump_on
+						ASS.normal_shader = bakeMapInfluence parentMat.texmap_bump parentMat.texmap_bump_multiplier black
+						--Opacity Part
+						ASS.opacity = white
+						ASS.opacity_connected = parentMat.texmap_opacity_on
+						ASS.opacity_shader = bakeMapInfluence parentMat.texmap_opacity parentMat.texmap_opacity_multiplier white
+						replaceInstances parentMat ASS
+					)
+					vrayLightMtl : 
+					(
+	-- 					convert to standard_surface
+						ASS=ai_standard_surface name:(uniquename(parentMat.name+"_Converted_")) base:0 specular:0 transmission:0 subsurface:0 caustics:on
+							
+						ASS.emission_color = parentMat.color
+						ASS.emission_color_connected = parentMat.texmap_on
+						ASS.emission_color_shader = parentMat.texmap
+						ASS.emission = parentMat.multiplier
+
+						ASS.opacity = white
+						ASS.opacity_connected = parentMat.opacity_texmap_on
+						ASS.opacity_shader = parentMat.opacity_texmap
+
+						replaceInstances parentMat ASS
+					)
+					VrayFastSSS2 : 
+					(
+	-- 					convert to physical material
+						APM=physicalMaterial name:(uniquename(parentMat.name+"_Converted_")) base_weight:0 reflectivity:0 roughness_inv:on material_mode:1 scattering:1 
+						--Diffuse Part
+						APM.base_color = parentMat.diffuse_color
+						APM.base_color_map_on = parentMat.texmap_diffuse_color_on
+						APM.base_color_map = bakeMapInfluence parentMat.texmap_diffuse_color parentMat.texmap_diffuse_color_multiplier parentMat.diffuse_color
+						--Diffuse Weight
+						APM.base_weight = parentMat.diffuse_amount
+						APM.base_weight_map_on = parentMat.texmap_diffuse_amount_on
+						colVal=parentMat.diffuse_amount
+						APM.base_weight_map = bakeMapInfluence parentMat.texmap_diffuse_amount parentMat.texmap_diffuse_amount_multiplier (([colVal,colVal,colVal,1] as point4) as color)
+						--SSS Color
+						APM.sss_color = parentMat.sub_surface_color
+						APM.sss_color_map_on =  parentMat.texmap_sss_color_on
+						APM.sss_color_map = bakeMapInfluence parentMat.texmap_sss_color parentMat.texmap_sss_color_multiplier parentMat.sub_surface_color
+						--Scatter Color
+						APM.sss_scatter_color = parentMat.scatter_color
+						APM.sss_depth = parentMat.scatter_radius*parentMat.scale
+						APM.sss_scale = 1 --always set to 1, map with a texture in an output
+-- 						APM.sss_scale_map = vrayColor name:"sss_scale_map" color:white rgb_multiplier:parentMat.scale
+						--Specular Part
+						APM.refl_color = parentMat.specular_color
+						APM.refl_color_map_on = parentMat.texmap_specular_color_on
+						APM.refl_color_map = bakeMapInfluence parentMat.texmap_specular_color parentMat.texmap_specular_color_multiplier parentMat.specular_color
+						--Specular Amount
+						APM.reflectivity = parentMat.specular_amount
+						APM.reflectivity_map_on = parentMat.texmap_specular_amount_on
+						colVal = parentMat.specular_amount
+						APM.reflectivity_map = bakeMapInfluence parentMat.texmap_specular_amount parentMat.texmap_specular_amount_multiplier (([colVal,colVal,colVal,1] as point4) as color)
+						--Specular Glossiness
+						APM.roughness = parentMat.specular_glossiness --already inverted the meaning of the physmat roughness on creation
+						APM.roughness_map_on = parentMat.texmap_specular_glossiness_on 
+						colVal=parentMat.specular_glossiness
+						APM.roughness_map = bakeMapInfluence parentMat.texmap_specular_glossiness parentMat.texmap_specular_glossiness_multiplier (([colVal,colVal,colVal,1] as point4) as color)
+						--IoR
+						APM.trans_ior = parentMat.ior
+						--Opacity (using CutOff!)
+						APM.cutout_map_on = parentMat.texmap_opacity_on
+						APM.cutout_map = bakeMapInfluence parentMat.texmap_opacity parentMat.texmap_opacity_multiplier white
+						--Bump
+						APM.bump_Map_on = parentMat.texmap_bump_on
+						APM.bump_map = parentMat.texmap_bump
+						APM.bump_map_amt = parentMat.texmap_bump_multiplier/100.						
+						
+						replaceInstances parentMat APM
+					) 
+					VRay2SidedMtl : 
+					(
+	-- 					convert to ai_two_sided, which misses options
+						A2S=ai_two_sided name:(uniquename(parentMat.name+"_Converted_")) front:parentMat.frontMtl
+						if parentMat.backMtlOn then A2S.back = parentMat.backMtl else A2S.back = parentMat.frontMtl
+						replaceInstances parentMat A2S
+					)
+					default : 
+					(
+						print ("!!!!!!! " + theClass as string) 
+						append leftOverMats parentMat
+					)
+				)				
+			)
+		)
+	)
+	
+	fn convertVRayLight VL=
+	(
+		/*
+		Five modes for the standard light: all but the dome can be portals
+		VRayIES
+		VrayAmbientLight
+		VRaySun
+		*/
+		-- Arnold Light creation
+		AL=Arnold_Light name:(uniquename(VL.name + "_Converted_")) exposure:0 normalize:off useColor:on intensity:666
+		--ArnoldLight Common Properties
+		--On		
+		try (AL.on=VL.on) catch (AL.on=VL.enabled)
+		--Transforms
+		try (AL.transform.controller = copy VL.transform.controller) catch (AL.transform = VL.transform)
+		if VL.target != undefined do --is targeted
+		(
+			AL.targeted=true
+			try (AL.target.transform.controller = copy VL.target.transform.controller) catch (AL.target.transform = VL.target.transform)
+		)				
+		AL.cast_shadows = try (VL.castShadows) catch (true)		
+		--Class
+		case of
+		(
+			(classOf VL == vrayLight) : 
+			(
+				if VL.targeted do 
+				(
+					--Target Distance
+					try (AL.targdist.controller = copy VL.target_distance.controller) catch (AL.targdist = VL.target_distance)
+				)
+				--Intensity
+				--Set the VL to image units multiplier for easier conversion.
+				VL.normalizeColor=0
+				AL.normalize=off
+				try (AL.intensity.controller = copy VL.multiplier.controller) catch (AL.intensity = VL.multiplier) --REALLY?!? p.s.: remember that if it's the case to divide by Pi, you have to care for the controller keys too.
+				--Color
+				--Set the VL's color mode to color, not temperature, for easier conversion
+				VL.color_mode=0
+				try (AL.color.controller = copy VL.color.controller) catch (AL.color = VL.color)
+				--Texture
+				if VL.texMap_on and VL.texmap != undefined do
+				(
+		-- 			AL.useColor = off	--?!?
+					AL.useTexmap = on
+					AL.texmap = VL.texmap
+				)
+				-- Influences
+				if VL.affect_diffuse then 
+				(
+					try (AL.diffuse.controller = copy VL.diffuse_contribution.controller) catch (AL.diffuse = VL.diffuse_contribution)
+				)
+				else
+				(
+					AL.diffuse = 0
+				)
+				if VL.affect_specular then
+				(
+					try (AL.specular.controller = copy VL.specular_contribution.controller) catch (AL.specular = VL.specular_contribution)
+				)
+				--Shadow Casting				
+				AL.cast_shadows = VL.castshadows				
+				--Fixture Visibility
+				AL.lightShapeVisible = not VL.invisible
+
+				--Shape
+				case VL.type of
+				(
+					0 : 
+					(
+						--Plane
+						--Type
+						AL.shapeType = 3
+						--Directionality
+						if VL.lightDistribution.controller != undefined then 
+						(
+							AL.spread.controller = copy VL.lightDistribution.controller
+							for k in AL.spread.controller.keys do k.value=1.0-k.value
+						)
+						else
+						(
+							AL.spread = 1.0-VL.lightDistribution
+						)
+						--Sizes
+						if VL.size0.controller !=  undefined then 
+						(
+							AL.quadX.controller = copy VL.size0.controller 
+							for k in AL.quadX.controller.keys do k.value*=2
+						)
+						else
+						(
+							AL.quadX = VL.size0*2
+						)
+						if VL.size1.controller != undefined then
+						(
+							AL.quadY.controller = copy VL.size1.controller 
+							for k in AL.quadY.controller.keys do k.value*=2
+						)
+						else
+						(
+							AL.quadY = VL.size1*2
+						)
+						--Ancillaries
+						AL.quadRoundness=0
+						AL.soft_edge=0
+						--Portal
+						AL.portal=VL.skylightPortal
+					)
+					1 : 
+					(
+						-- If it's a dome, i seem to be able to ONLY make it work in "Physical mode", copying the map to the Background.
+						--Dome
+
+-- 						AL.shapeType = 6
+-- 						AL.resolution = VL.texmap_resolution
+-- 						AL.format = 2 --LatLong. To Verify!
+						--set Arnold to use the dome!
+						arnoldRenderer.env_mode = 1
+-- 						renderers.current.env_adv_ibl_multiplier = 1/Pi
+						delete AL						
+						if VL.texMap_on and VL.texmap != undefined then
+						(
+							useEnvironmentMap = true
+-- 							om=multA=output map1:VL.texmap output_amount:1.0/Pi
+							environmentMap = VL.texmap
+						)
+						else
+						(
+							useEnvironmentMap = false
+							environmentMap = undefined
+							try (backgroundColorController = copy VL.color.controller) catch (backgroundColor = VL.Color)
+						)
+					)
+					2 : 
+					(
+						--Sphere
+						--Doesn't exist. Approximating with a sphere mesh(?!)
+-- 								AL.shapeType = 8
+-- 								sphereMesh= geoSphere radius:VL.size0 isHidden:true renderable:false
+-- 								AL.lightMesh = sphereMesh
+						
+						--Arnold Omni has a RADIUS. will use that.
+						AL.shapeType = 0
+						AL.lightRadius=VL.size0
+					)
+					3 : 
+					(
+						--Mesh
+						AL.shapeType = 8
+						AL.lightMesh = VL.mesh_source
+					)
+					4 : 
+					(
+						--Disc
+						AL.shapeType = 4
+						try (AL.lightRadius.controller = copy VL.size0.controller) catch (AL.lightRadius = VL.size0)
+						--Directionality
+						if VL.lightDistribution.controller != undefined then 
+						(
+							AL.spread.controller = copy VL.lightDistribution.controller
+							for k in AL.spread.controller.keys do k.value=1.0-k.value
+						)
+						else
+						(
+							AL.spread = 1.0-VL.lightDistribution
+						)
+					)
+					
+				)
+			)
+			(classOf VL == VRayIES) :
+			(
+				--Set to Photometric light
+				AL.shapeType = 7				
+				--filename
+				AL.filename = VL.ies_file				
+				--Color
+				--Set the VL's color mode to color, not temperature, for easier conversion
+				VL.color_mode=0
+				try (AL.color.controller = copy VL.color.controller) catch (AL.color = VL.color)
+				--Intensity
+				--Set the VL to lm units, then convert with 945.2486:1 towards the AL.
+				if VL.intensity_value.controller != undefined then
+				(
+					AL.intensity.controller = copy VL.intensity_value.controller
+					for k in AL.intensity.controller.keys do k.value/=945.2486 --?!?
+				)
+				else
+				(
+					AL.intensity = VL.intensity_value/945.2486  --?!?
+				)
+-- 				AL.photometricRadius = 10 --no equivalent?
+				--Influences
+				AL.diffuse = if VL.affect_diffuse then 1 else 0
+				AL.specular = if VL.affect_specular then 1 else 0
+				AL.cast_shadows = VL.cast_shadows
+			)
+			(classOf VL == VRayAmbientLight) :
+			(
+				-- no equivalent?
+			)
+			(classOf VL == VRaySun) :
+			(
+				AL.shapeType = 1
+			)
+			(classOf VL == omniLight or classOf VL == freeSpot or classOf VL == targetSpot or classOf VL == Directionallight or classOf VL == TargetDirectionallight) : --max lights
+			(
+				--common properties
+				--shadow size (V-Ray only)
+				if ((classOf VL.shadowGenerator == VRayShadow) and VL.AreaShadow ) then 
+				(
+					if VL.areaShadowType==1 then AL.lightRadius = VL.usize else AL.lightRadius = amax#(VL.usize,VL.vsize,VL.wsize)
+				)
+				else AL.lightRadius=0
+				--Don't scale energy with light size.
+				AL.normalize=on
+				--color and intensity
+				AL.intensity = VL.multiplier
+				AL.useColor = on
+				AL.color = VL.rgb
+				AL.cast_shadows = VL.castShadows
+				
+				if classOf VL == omnilight then
+				(
+					AL.shapeType = 0
+				)
+				if classOf VL == Directionallight or classOf VL == TargetDirectionallight then
+				(
+					AL.shapeType = 2 --I'll convert them into truncated spots so to translate the softness parameters
+					AL.cone_angle = VL.falloff
+					AL.penumbra_angle =  VL.falloff - VL.hotspot
+					AL.lens_radius=360 --truncates the light cone point entirely
+					if VL.coneShape == 1 then --circle
+					(
+						AL.aspect_ratio=1 	--no AR for circle spots in max
+						AL.spotRoundness =1 	--perfectly circular
+					)
+					else	--rectangle
+					(
+						AL.aspect_ratio = VL.aspect --AR
+						AL.spotRoundness =0	--perfectly square
+					)					
+				)				
+				if classOf VL == freeSpot or classOf VL == targetSpot then
+				(
+					AL.shapeType = 2
+					AL.cone_angle = VL.falloff
+					AL.penumbra_angle =  VL.falloff - VL.hotspot
+					AL.lens_radius=0 --truncates the light cone point
+					if VL.coneShape == 1 then --circle
+					(
+						AL.aspect_ratio=1 	--no AR for circle spots in max
+						AL.spotRoundness=1 	--perfectly circular
+					)
+					else	--rectangle
+					(
+						AL.aspect_ratio = VL.aspect --AR
+						AL.spotRoundness=0	--perfectly square
+					)
+				)				
+			)
+			default :
+			(
+				append leftOverLights VL
+			)
+		)
+		
+		try (
+				try (AL.parent = VL.parent) catch()
+-- 				replaceinstances VL AL
+				try (delete VL) catch()
+			) 
+		catch 
+			(
+				append leftOverLights VL
+				try (delete AL) catch ()
+			)
+	)
+	
+	fn convertVRayCamera VRC =
+	(
+-- 		$.parent
+		PC = physical_Camera name:(uniquename (VRC.name + "_Converted_")) targeted:false
+			
+		if VRC.target != undefined then --copy just the position
+		(
+-- 			print "Animated Target"
+			try (PC.position.controller = copy VRC.position.controller) catch (PC.position = VRC.position)
+-- 			try (PC.transform.controller = copy VRC.transform.controller) catch (PC.transform = VRC.transform)
+			PC.targeted=true
+			try (PC.target.position.controller = copy VRC.target.position.controller) catch (PC.target.position = VRC.target.position)
+		)
+		else	--else copy the whole transform
+		(
+			try (PC.transform.controller = copy VRC.transform.controller) catch (PC.transform = VRC.transform)
+		
+		)
+
+		for p in (getPropNames VRC) do
+		(
+			try 
+			(
+				try
+				(
+					setPropertyController PC p (getPropertyController VRC p)
+				)
+				catch
+				(
+					setProperty PC p (getProperty VRC p)
+				)
+			)
+			catch
+			(
+-- 				print ("couldn't set the property named " + p as string + " on the " + VRC.name + " camera.")
+			)
+		)
+		-- this part deals with the non-directly-mappable properties, in a dictionary fashion
+		try (PC.film_width_mm.controller = copy VRC.film_width.controller) catch (PC.film_width_mm = VRC.film_width)
+		try (PC.focal_length_mm.controller = copy VRC.focal_length.controller) catch (PC.focal_length_mm = VRC.focal_length)
+		PC.motion_blur_enabled = VRC.use_moblur
+		-- Exposure
+		if VRC.exposure do 
+		(
+			--Check for the current exposure control first
+			EC=SceneExposureControl.exposureControl
+			case (classOf EC) of
+			(
+				undefinedClass : --exposure was wholly on camera. Install the new one and set it up accordingly
+				(
+					newEC = Physical_Camera_Exposure_Control()
+					newEC.use_physical_camera_controls = true
+					newEC.use_global_ev=0
+					newEC.global_ev = 0
+					SceneExposureControl.exposureControl=newEC
+					PC.exposure_gain_type=0 --ISO
+					PC.ISO=VRC.ISO
+				)
+				VRay_Exposure_Control :
+				(
+					case EC.mode of
+					(
+						105 :	--From Camera: there is no way to assign a camera to the Physical Exposure controls. Treat as "Photographic"
+						(
+							newEC = Physical_Camera_Exposure_Control()
+							newEC.use_physical_camera_controls = true --make it use the camera settings
+							newEC.use_global_ev=0
+							newEC.global_ev = 0
+							SceneExposureControl.exposureControl=newEC
+							--copy settings over to the physical camera
+							PC.exposure_gain_type=0 --ISO
+							PC.ISO=VRC.ISO
+						)
+						106 :	--From EV
+						(
+							newEC = Physical_Camera_Exposure_Control()
+							newEC.use_physical_camera_controls = off --make it use the panel settings
+							newEC.use_global_ev=1
+							newEC.global_ev = EC.exposureControl.ev
+							SceneExposureControl.exposureControl=newEC
+						)
+						107 : 	--Photographic
+						(
+							newEC = Physical_Camera_Exposure_Control()
+							newEC.use_physical_camera_controls = true --make it use the camera settings
+							newEC.use_global_ev=0
+							newEC.global_ev = 0
+							SceneExposureControl.exposureControl=newEC
+							--copy settings over to the physical camera
+							PC.exposure_gain_type=0 --ISO
+							PC.ISO=VRC.ISO
+						)
+					)
+				)
+				
+			)
+		)
+		--shutter
+		case VRC.type of
+		(
+			0: --still cam: 1/s
+			(
+				PC.shutter_unit_type = 0
+				PC.shutter_offset_enabled = false
+				try 
+				(
+					PC.shutter_length_seconds.controller = copy VRC.shutter_speed.controller
+					for k in PC.shutter_length_seconds.controller.keys do k.value=1.0/k.value
+				) 
+				catch (PC.shutter_length_seconds = 1.0/VRC.shutter_speed)
+			)
+			1: --movie cam: angle + offset
+			(
+				PC.shutter_unit_type = 2
+				PC.shutter_offset_enabled = true
+				try 
+				(
+					PC.shutter_length_frames.controller = copy VRC.shutter_angle.controller
+					for k in PC.shutter_length_frames.controller.keys do k.value/=360.0
+					PC.shutter_offset_frames.controller = copy VRC.shutter_offset.controller
+					
+				) 
+				catch 
+				(
+					PC.shutter_length_frames = VRC.shutter_angle/360
+					PC.shutter_offset_frames = VRC.shutter_offset
+				)
+			)
+			2: --video cam: latency 
+			(
+				PC.shutter_unit_type = 1
+				PC.shutter_offset_enabled = false
+				try
+				(
+					PC.shutter_length_seconds.controller = copy VRC.latency.controller
+				)
+				catch 
+				(
+					PC.shutter_length_seconds = VRC.latency
+				)
+			)
+		)
+		--Wignetting and WB
+		PC.vignetting_enabled = VRC.vignetting
+		PC.white_balance_type = 2	--manual
+		try (PC.white_balance_custom.controller = copy VRC.whiteBalance.controller) catch (PC.white_balance_custom = VRC.whiteBalance)
+
+		--Lens Correction
+		try (PC.vertical_tilt_correction.controller = copy VRC.lens_tilt.controller) catch (PC.vertical_tilt_correction = VRC.lens_tilt)
+		try (PC.horizontal_tilt_correction.controller = copy VRC.lens_horTilt.controller) catch (PC.horizontal_tilt_correction = VRC.lens_horTilt)
+		try (PC.horizontal_shift.controller = copy VRC.horizontal_shift.controller) catch (PC.horizontal_shift = VRC.horizontal_shift)
+		try (PC.vertical_shift.controller = copy VRC.vertical_shift.controller) catch (PC.vertical_shift = VRC.vertical_shift)
+		PC.auto_vertical_tilt_correction = VRC.lens_tilt_auto
+		
+		--Bokeh
+		if not VRC.use_Blades then PC.bokeh_shape = 0 --Circular
+			else 
+			(
+				PC.bokeh_shape = 1 --Bladed
+				try (PC.bokeh_blades_number.controller = copy VRC.blades_number.controller) catch (PC.bokeh_blades_number = VRC.blades_number)
+				try (PC.pb_bokeh_blaades_rotation_degrees.controller = copy VRC.blades_rotation.controller) catch (PC.pb_bokeh_blaades_rotation_degrees = VRC.blades_rotation) -- SERIOUSLY?
+			)
+		if VRC.bitmap_aperture_on do 
+		(
+			PC.bokeh_shape = 2 --texture mapped
+			PC.bokeh_texture_affect_exposure = VRC.bitmap_aperture_affectExposure
+			PC.bokeh_texture = VRC.bitmap_aperture_texmap
+		)
+		try (PC.bokeh_center_bias.controller = copy VRC.center_bias.controller) catch (PC.bokeh_center_bias = VRC.center_bias) 
+		try (PC.bokeh_optical_vignetting.controller = copy VRC.optical_vignetting.controller) catch (PC.bokeh_optical_vignetting = VRC.optical_vignetting) 
+		try (PC.bokeh_anisotropy.controller = copy VRC.anisotropy.controller) catch (PC.bokeh_anisotropy = VRC.anisotropy) 
+		try (PC.baseObject.ReferenceTarget.bitmap_aperture_res.controller = VRC.bitmap_aperture_res.controller) catch (PC.baseObject.ReferenceTarget.bitmap_aperture_res = VRC.bitmap_aperture_res)
+		case VRC.distortion_type of
+		(
+			0: --Quadratic: no equivalent
+			(
+				PC.distortion_type=0 --set to none
+			)
+			1: --Cubic
+			(
+				PC.distortion_type=1 --set to Cubic
+				try (PC.distortion_cubic_amount.controller = copy VRC.Distortion) catch (PC.distortion_cubic_amount=VRC.Distortion)
+			)
+			2: -- Lens File, no equivalent
+			(
+				PC.distortion_type=0 --set to none
+			)
+			3: --Textured
+			(
+				PC.distortion_type=2 --set to Texture
+				PC.distortion_texture = VRC.distortion_map
+			)
+		)
+		try (delete VRC) catch()
+	)
+
+	fn convertAllSceneMaterials =
+	(
+		ts=timestamp()
+		print "Processing Materials"
+		-- ALWAYS join composited materials for last, lest they won't get converted!
+		allMats = (getClassInstances vrayMtl)
+		join allMats (getClassInstances vrayLightMtl)
+		join allMats (getClassInstances VrayFastSSS2)		
+		join allMats (getClassInstances VRay2SidedMtl)
+		join allMats (getClassInstances VRayBlendMtl)
+
+
+		for m in allMats do convertVrayMtl m false --convertVrayMtl inMaterial useADMaterials
+		
+		totTime=(timeStamp()-ts)/1000.
+		print ("It took " + totTime as string + "s. to convert " + allMats.count as string + " Materials")
+		if leftOverMats.count > 0 then 
+			(
+				print ("A total of " + leftOverMats.count as string + " Materials were not converted")
+				print leftOverMats
+			)
+		else print "All Materials were converted."
+	)	
+	
+	fn convertAllSceneLights =
+	(
+		ts=timestamp()
+		print "Processing Lights"
+		allLights = for l in lights where classof l != targetobject and classOf l == VRayLight collect l
+		join allLights (for l in lights where classof l != targetobject and classOf l == VRayIES collect l)
+		join allLights (for l in lights where classof l != targetobject and classOf l == VRayAmbientLight collect l)
+		join allLights (for l in lights where classof l != targetobject and classOf l == VRaySun collect l)
+		join allLights (for l in lights where classof l != targetobject and classOf l == omniLight collect l)
+		join allLights (for l in lights where classof l != targetobject and classOf l == freeSpot collect l)
+		join allLights (for l in lights where classof l != targetobject and classOf l == targetSpot collect l)
+		join allLights (for l in lights where classof l != targetobject and classOf l == Directionallight collect l)
+		join allLights (for l in lights where classof l != targetobject and classOf l == TargetDirectionallight collect l)
+
+		for l in allLights do
+		(
+			convertVRayLight l
+		)
+		totTime=(timeStamp()-ts)/1000.
+		print ("It took " + totTime as string + "s. to convert " + allLights.count as string + " Lights")
+		if leftOverLights.count > 0 then 
+			(
+				print ("A total of " + leftOverLights.count as string + " Lights were not converted")
+				print leftOverLights
+			)
+		else print "All Lights were converted."
+	)
+
+	fn convertAllVRayCameras = 
+	(
+		print "Processing Cameras"
+		allCameras = for c in cameras where classof c == vrayPhysicalCamera collect c
+-- 		print allCameras
+		for c in allCameras do convertVRayCamera c	
+		if allCameras.count == 1 do viewport.setType #view_camera
+	)
+	
+	fn switchToArnold =
+	(
+		with undo on 
+		(
+			vrayRenderer=undefined
+			itsVray = false
+			if matchPattern ((classOf renderers.current) as string) pattern:"V_Ray*" do
+			(
+				vrayRenderer = renderers.current
+				itsVray = true
+			)
+			if itsVray do
+			(
+				maxDiffuseDepth = if vrayRenderer.gi_secondary_type==3 then vrayRenderer.lightcache_bounces else vrayRenderer.dmcgi_depth
+			)
+			
+			arnoldRenderer.indirect_sample_clamp=if itsVray and vrayRenderer.options_maxRayIntensity_on then vrayRenderer.options_maxRayIntensity else 10000000.0
+			arnoldRenderer.legacy_3ds_max_map_support = true
+			arnoldRenderer.env_mode = 1
+			arnoldRenderer.env_adv_ibl_multiplier = 1.0
+			arnoldRenderer.GI_diffuse_depth = if maxDiffuseDepth!=0 then maxDiffuseDepth else 3
+			arnoldRenderer.GI_specular_depth = maxReflectionDepth
+			arnoldRenderer.GI_transmission_depth = maxRefractionDepth
+			renderers.production = arnoldRenderer
+		)
+	)
+-- show (vray())
+	fn switchToCreateMode onOff = 
+	(
+		oldMode=undefined
+		if onOff then
+		(
+			oldMode = getCommandPanelTaskMode
+			setCommandPanelTaskMode #create
+		)
+		else
+		(
+			if oldMode!=undefined do setCommandPanelTaskMode oldMode
+		)
+	)
+	
+	
+-- 	suspendEditing() --this is like moving to the creation panel, in that it doesn't update the UI, regardless of what's active in the UI. new from max 7, i think. First time i use it! :P
+	switchToCreateMode on
+	convertAllSceneMaterials()
+	convertAllSceneLights()
+	convertAllVRayCameras()
+	switchToArnold()
+	switchToCreateMode off
+-- 	resumeEditing()
+)
+-- scenematerials.count
+-- meditmaterials[1]=(getclassinstances vrayBlendMtl)[10]
+-- meditmaterials[7]=(for m in (getclassinstances AI_mix_shader) where m.name== "metal_dark_anizo_Converted001" collect m)[1]
+-- meditmaterials[1]=physicalMaterial()
+
+-- show (ai_two_sided())
+-- show (vrayMtl())
+-- 	
+-- 				for l in lights where classof l == targetSpot do l.enabled = on	
