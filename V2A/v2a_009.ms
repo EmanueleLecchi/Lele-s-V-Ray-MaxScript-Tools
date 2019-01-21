@@ -1354,6 +1354,7 @@
 
 		for l in allLights do
 		(
+-- 			print l
 			convertVRayLight l
 		)
 		totTime=(timeStamp()-ts)/1000.
