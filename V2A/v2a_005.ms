@@ -27,6 +27,8 @@
 	local allCameras  = #()
 	local leftOverCameras = #()
 	
+	local ABCObject=""
+	
 	local maxRefractionDepth = 0
 	local maxReflectionDepth = 0
 	local maxDiffuseDepth = 0
@@ -1064,6 +1066,77 @@
 		try (delete VRC) catch()
 	)
 
+	fn convertVrayProxy VRP =
+	(
+		/*
+		Convert a V-Ray proxy to an arnold Procedural Object
+		Import the proxy mesh, save to OBJ, create the APO node, transfer attributes, point to OBJ
+		*/
+
+		--Build output path
+		meshOutPath=getfilenamePath VRP.filename + getfilenamefile VRP.filename + ".obj"
+
+		--Set the INI options for objExp
+		theINI = objexp.getIniName()
+		if theINI != undefined then
+		(
+			setIniSetting theINI "Geometry" "FlipZyAxis" (((not VRP.flip_axis) as integer) as string)
+			print (getIniSetting theINI "Geometry" "FlipZyAxis" )
+		)
+		else
+		(
+			print "Couldn't Find the OBJ Exporter INI file"
+		)
+		if not doesFileExist meshOutPath then --convert it!
+		(
+			ts=timestamp()
+			disableSceneRedraw() 
+			VRP.display = 4
+			clearNodeSelection()
+			select VRP
+			print "exporting OBJ"
+			exportFile meshOutPath #noPrompt selectedOnly:true 
+			if doesFileExist meshOutPath do --it should ALREADY exist. But who knows, eh?
+			(
+				print "relinking OBJ after Export"
+				APO = Arnold_Procedural_Object procedural:meshOutPath name:(uniqueName (VRP.name+"_APOConverted_")) upAxis:(if VRP.Flip_axis then 1 else 2)
+				try (APO.parent = VRP.parent) catch()
+				try (APO.transform.controller = VRP.stransform.controller) catch (APO.transform = VRP.transform)
+				APO.material = VRP.material
+				APO.wirecolor = VRP.wirecolor
+-- 				replaceInstances VRP APO
+				delete VRP
+			)
+			enableSceneRedraw()
+			print ((timestamp()-ts) as string)
+		)
+		else
+		(
+
+			print "relinking OBJ after Export"
+			APO = Arnold_Procedural_Object procedural:meshOutPath name:(uniqueName (VRP.name+"_APOConverted_")) upAxis:(if VRP.Flip_axis then 1 else 2)
+			try (APO.parent = VRP.parent) catch()
+			try (APO.transform.controller = VRP.stransform.controller) catch (APO.transform = VRP.transform)
+			APO.material = VRP.material
+			APO.wirecolor = VRP.wirecolor
+-- 			replaceInstances VRP APO
+			delete VRP
+		)
+
+-- 		)
+-- 		catch (enableSceneRedraw())
+	)
+	
+	fn convertAllProxies =
+	(
+		allProxies = for o in objects where classOf o == vrayProxy collect o
+		for p in allProxies where p.modifiers.count == 0 do 
+		(
+			convertVrayProxy p
+		)
+-- 		gc lite:true
+	)
+	
 	fn convertAllSceneMaterials =
 	(
 		ts=timestamp()
@@ -1074,10 +1147,7 @@
 		join allMats (getClassInstances VrayFastSSS2)		
 		join allMats (getClassInstances VRay2SidedMtl)
 		join allMats (getClassInstances VRayBlendMtl)
-
-
 		for m in allMats do convertVrayMtl m false --convertVrayMtl inMaterial useADMaterials
-		
 		totTime=(timeStamp()-ts)/1000.
 		print ("It took " + totTime as string + "s. to convert " + allMats.count as string + " Materials")
 		if leftOverMats.count > 0 then 
@@ -1166,14 +1236,15 @@
 		)
 	)
 	
-	
+
 -- 	suspendEditing() --this is like moving to the creation panel, in that it doesn't update the UI, regardless of what's active in the UI. new from max 7, i think. First time i use it! :P
-	switchToCreateMode on
+-- 	switchToCreateMode on
+	convertAllProxies()
 	convertAllSceneMaterials()
 	convertAllSceneLights()
 	convertAllVRayCameras()
 	switchToArnold()
-	switchToCreateMode off
+-- 	switchToCreateMode off
 -- 	resumeEditing()
 )
 -- scenematerials.count

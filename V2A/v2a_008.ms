@@ -148,11 +148,12 @@
 				)
 				else --sun node specified, create a sky locator widget for the Autodesk Map, simply paste the direction values for the Arnold one.
 				(
--- 					print "Sun node specified"
+					print "Sun node specified"
 					if isAISky then
 					(
-						ASky.azimuth = acos VRS.sun_node.dir[2]
-						ASky.elevation = acos VRS.sun_node.dir[1]
+						print "here"
+						ASky.azimuth = acos VRS.sun_node.dir[1]
+						ASky.elevation = acos VRS.sun_node.dir[3]
 -- 						aSky.sun_direction = VRS.sun_node.dir
 					)
 					else
@@ -213,6 +214,7 @@
 							print "Hosek"
 							ASky = ai_physical_sky name:(uniquename(VRS.name + "_Converted_")) use_degrees:on 
 							isAISky = true
+							print "there"
 							ASky.azimuth = acos VRSun.dir[2]
 							ASky.elevation = acos VRSun.dir[1]
 -- 							ASky.sun_direction=VRSun.dir

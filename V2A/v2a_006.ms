@@ -64,6 +64,36 @@
 		outMap
 	)	
 	
+	fn convertVRaySky VRS =
+	(
+		if useADMaterials then --AD-based allowed
+		(
+			--the simplest way would be to converto to the AD one.
+			aSky = Physical_Sun___Sky_Environment name:(uniquename(VRS.name + "_Converted_"))
+			case VRS.manual_sun_node of
+			(
+				on : --Manually specified sun node: settings transfer from the map itself
+				(
+					if VRS.sun_node == undefined then --no node specified. Sunless Sky
+					(
+						--nothing to do for the node, but just to be clear:
+						aSky.sun_position_object = undefined
+					)
+					else --sun node specified, create a sky locator widget
+					(
+						aSun = Sun_Positioner name:(aSky.name+"_SunPositioner") --no need for a uniqueName, as the sky only supports one locator, and its name was already unique
+						try (aSun.parent = VRS.parent) catch()
+						try ((aSun.transform.controller=copy VRS.sun_node.transform.controller)) catch (aSun.transform=VRS.sun_node.transform)
+						aSky.sun_position_object = aSun
+					)
+				)
+			)
+		)
+		else --arnold-based only
+		(
+		)
+	)
+	
 	fn convertBlend vM matA matB =  
 	(
 		aM=ai_mix_shader name:(uniquename(vM.name+"_Converted_"))
@@ -1191,7 +1221,6 @@
 			)
 		else print "All Materials were converted."
 	)	
-	
 		
 	fn convertAllSceneLights =
 	(
@@ -1221,6 +1250,8 @@
 		else print "All Lights were converted."
 	)
 
+	
+	
 	fn convertAllVRayCameras = 
 	(
 		ts=timestamp()

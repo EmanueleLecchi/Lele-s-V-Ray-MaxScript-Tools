@@ -13,7 +13,6 @@
 		outString
 	)
 	
-
 	--find nodes which have a multiSub material
 	msNodes=for g in geometry where classOf g != forest_Pro and classOf g != vrayProxy and classOf g != targetObject and (classof g.material == multisubMaterial) collect g
 	totCount=msNodes.count
@@ -64,7 +63,6 @@
 						(
 							print (newName + " has no material to be assigned for ID #" + mtlID as string)
 						)
-					
 					)
 				if (polyop.getNumFaces n==0) do delete n
 				freeSceneBitmaps()
@@ -75,4 +73,3 @@
 		print ("Processing of the scene took " + ((timeStamp()-st)/1000.) as string )
 	)
 )
-

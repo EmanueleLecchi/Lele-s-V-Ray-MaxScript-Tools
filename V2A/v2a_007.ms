@@ -1442,7 +1442,8 @@
 	(
 		print "Switching to the Arnold Renderer"
 		Print "Depending on the license, it could take a while, nothing to do with me..."
-		
+		wasOpen = renderscenedialog.isopen()
+		renderscenedialog.close()
 		with undo on 
 		(
 			vrayRenderer=undefined
@@ -1458,10 +1459,11 @@
 			arnoldRenderer.GI_diffuse_depth = if maxDiffuseDepth!=0 then maxDiffuseDepth else 3
 			arnoldRenderer.GI_specular_depth = maxReflectionDepth
 			arnoldRenderer.GI_transmission_depth = maxRefractionDepth
-			arnoldRenderer.GI_total_depth = arnoldRenderer.GI_diffuse_depth + arnoldRenderer.GI_specular_depth + arnoldRenderer.GI_transmission_depth
+			arnoldRenderer.GI_total_depth = arnoldRenderer.GI_specular_depth + arnoldRenderer.GI_transmission_depth
 			arnoldRenderer.auto_transparency_depth = arnoldRenderer.GI_total_depth
 			renderers.production = arnoldRenderer
 		)
+		if wasOpen do  renderscenedialog.open()
 	)
 
 	fn switchToCreateMode onOff = 
@@ -1528,6 +1530,6 @@
 		)
 	)
 	
-	useADMaterials = false
+	useADMaterials = true
 	processVrayScene useADMaterials
 )

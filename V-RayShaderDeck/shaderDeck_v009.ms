@@ -434,7 +434,7 @@
 			if not doExtended then 
 			(
 				elemList = #( VraySampleRate, VrayNoiseLevel, VrayRenderTime, VrayDiffuseFilter, VrayGlobalIllumination, VrayLighting, VrayNoiseLevel, VrayReflection, VrayRefraction, VraySpecular, VrayTotalLighting, VraySSS2, VrayAtmosphere,VrayReflectionFilter,VrayRefractionFilter)
-				elemNamesList = #( "VraySampleRate", "VrayNoiseLevel", "VrayRenderTime", "VrayDiffuseFilter", "VrayGlobalIllumination", "VrayLighting", "VrayNoiseLevel", "VrayReflection", "VrayRefraction", "VraySpecular", "VrayTotalLighting", "VraySSS2", "VrayAtmosphere",VrayReflectionFilter","VrayRefractionFilter")			
+				elemNamesList = #( "VraySampleRate", "VrayNoiseLevel", "VrayRenderTime", "VrayDiffuseFilter", "VrayGlobalIllumination", "VrayLighting", "VrayNoiseLevel", "VrayReflection", "VrayRefraction", "VraySpecular", "VrayTotalLighting", "VraySSS2", "VrayAtmosphere","VrayReflectionFilter","VrayRefractionFilter")			
 			)
 			else
 			(
