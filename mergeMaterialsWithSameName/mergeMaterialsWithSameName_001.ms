@@ -89,8 +89,9 @@
 	fn uniquifyMaterials = --bhahahah!
 	(
 		allmats = for m in scenematerials collect m
+		 
 		allHashes =  #()
-		print "Parsing and hashing materials."
+		print ("Parsing and hashing " + allMats.count as string +" materials.")
 		for m in allmats do
 		(
 			hashStr = stringstream ""
@@ -113,7 +114,7 @@
 		)
 
 		free allMats
-		print "Parsing and Hashing geometry."
+		print ("Parsing and Hashing " + geometry.count as string + " geometry nodes.")
 		allGeo = #()
 		for g in geometry where g.material != undefined do
 		(
@@ -144,14 +145,16 @@
 		UpdateSceneMaterialLib() 
 		print "all done."
 	)
-
+	
 	setSuperExpertMode on
+	ts=timestamp()
 	try ( uniquifyMaterials() )
 	catch
 	(
 		print "An error occurred! Please send a scene copy to Lele!"
 		setSuperExpertMode off
 	)
+	print ((timestamp()-ts)/1000.) as string
 	setSuperExpertMode off
 	
 )
