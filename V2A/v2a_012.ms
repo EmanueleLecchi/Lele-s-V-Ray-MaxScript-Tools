@@ -81,7 +81,9 @@
 			cui.expertModeOn()				-- set the UI in expert mode
 			statusPanel.visible = false		--hide the status bar as well (consider NOT doing this if showing a progressbar.
 			MatEditor.close()
-
+			disableSceneRedraw() 			
+			suspendEditing() --this is like moving to the creation panel, in that it doesn't update the UI, regardless of what's active in the UI. new from max 7, i think. First time i use it! :P
+			disableRefMsgs()
 		)
 		
 		else 				--if the bool is false/0/off, then 
@@ -127,11 +129,11 @@
 			(
 				if matEditorWasOpen do matEditor.open()
 			)
+			enableSceneRedraw()
+			resumeEditing()
+			enableRefMsgs()
 		)
 	)	
-	
-	
-	
 	
 	fn itsVray input =
 	(
@@ -855,7 +857,13 @@
 	fn convertVRayLight VL=
 	(
 		-- Arnold Light creation
-		AL=Arnold_Light name:(uniquename(VL.name + "_Converted_")) exposure:0 normalize:off useColor:on intensity:666 
+		--This goes through madness, like so:
+		AL=dummy name:(uniquename(VL.name + "_Converted_")) wirecolor:VL.color
+		AL.baseobject = createinstance Arnold_Light
+		AL.exposure=0 
+		AL.normalize=off 
+		AL.useColor=on 
+		AL.intensity=666 
 
 		--ArnoldLight Common Properties
 		--On		
@@ -1384,7 +1392,7 @@
 		else print "All Materials were converted."
 	)	
 		
-	fn convertAllSceneLights =
+	fn convertAllSceneLights batchSize=
 	(
 		ts=timestamp()
 		print "Processing Lights"
@@ -1400,10 +1408,8 @@
 		join allLights (for l in lights where classof l != targetobject and classOf l == TargetDirectionallight collect l)
 		print allLights.count
 		
-		--split the array in sub-arrays with 100 lights each max.
-		
-		batchSize = 25
-		print ("Splitting big array in batches of " + batchSize as string)
+
+		print ("Splitting in batches of " + batchSize as string)
 		
 		arraysCount = if ( mod allLights.count batchSize == 0 ) then (allLights.count / batchSize) else ( (allLights.count / batchSize) + 1 )
 		newLightsArray = #()
@@ -1429,22 +1435,17 @@
 			(
 				ii+=1
 				windows.processPostedMessages()
-				convertVRayLight l
+				if l != undefined do convertVRayLight l
 			)
+
 			print "Deleting"
+			for l in lightsToDelete do l.baseobject = createInstance dummy
 			delete lightsToDelete 
 			lightsToDelete = #()
 			print ( ((i as float/newLightsArray.count)*100.) as string + @"% done so far")
 			print ( (((timestamp()-ts1)/(1000.*batchSize)) as string) + "s. per light")
 			ts1=timestamp()
 		)
--- 		gc()
--- 		freescenebitmaps()
--- 		print "Deleting old Lights"
--- 		clearSelection()
--- 		for l in lightsToDelete do selectmore l
--- 		delete selection
--- 		delete lightsToDelete 
 		
 		totTime=(timeStamp()-ts)/1000.
 		print ("It took " + totTime as string + "s. to convert " + allLights.count as string + " Lights")
@@ -1533,13 +1534,12 @@
 				print "Massaging Heap Size"
 				if heapfree < 500000000 do ( heapsize += (500000000-heapfree))
 				
-				suspendEditing() --this is like moving to the creation panel, in that it doesn't update the UI, regardless of what's active in the UI. new from max 7, i think. First time i use it! :P
-				disableSceneRedraw() 
+				
 				switchToCreateMode on
 				convertAllVrayMaps()
 				convertAllSunAndSky()				
 				convertAllProxies()
-				convertAllSceneLights()
+				convertAllSceneLights 250
 				convertAllSceneMaterials useADMaterials
 				convertAllVRayCameras()
 				switchToArnold()
