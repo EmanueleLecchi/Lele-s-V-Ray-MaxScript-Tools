@@ -138,7 +138,7 @@
 	fn itsVray input =
 	(
 		matchpattern (input as string) pattern:"V_Ray_N*"
-	)
+	)it
 	
 	fn bakeMapInfluence inMap influenceAmt baseColor=
 	(
@@ -1439,7 +1439,7 @@
 			)
 
 			print "Deleting"
-			for l in lightsToDelete do l.baseobject = createInstance dummy
+-- 			for l in lightsToDelete do l.baseobject = createInstance dummy
 			delete lightsToDelete 
 			lightsToDelete = #()
 			print ( ((i as float/newLightsArray.count)*100.) as string + @"% done so far")
