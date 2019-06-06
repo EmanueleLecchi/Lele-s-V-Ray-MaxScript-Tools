@@ -5,8 +5,8 @@ Group {
  name VRayKerneler
  label "\[value viewPD]\n"
  selected true
- xpos 2383
- ypos -531
+ xpos -616
+ ypos -496
  postage_stamp true
  addUserKnob {20 MainControlsTab l "Main Controls:" -STARTLINE}
  addUserKnob {20 OpModeGroup l "Operation Modes:" n 1}
@@ -26,6 +26,8 @@ Group {
  addUserKnob {6 Min_panelDropped_1_1_1 l "panel dropped state" -STARTLINE +HIDDEN}
  addUserKnob {6 Min_panelDropped_1_1_1_1 l "panel dropped state" -STARTLINE +HIDDEN}
  addUserKnob {6 Min_panelDropped_1_1_1_1_1 l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {6 Min_panelDropped_1_1_1_1_1_1 l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {6 Min_panelDropped_1_1_1_1_1_1_1 l "panel dropped state" -STARTLINE +HIDDEN}
  addUserKnob {6 min_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
  addUserKnob {19 Max l "Max (RGBV):"}
  Max {{valueMeasurerR.maxlumapixvalue.r} {valueMeasurerG.maxlumapixvalue.g} {valueMeasurerB.maxlumapixvalue.b} {luminanceMeasurer.maxlumapixvalue.r}}
@@ -35,6 +37,8 @@ Group {
  addUserKnob {6 Max_panelDropped_1_1_1 l "panel dropped state" -STARTLINE +HIDDEN}
  addUserKnob {6 Max_panelDropped_1_1_1_1 l "panel dropped state" -STARTLINE +HIDDEN}
  addUserKnob {6 Max_panelDropped_1_1_1_1_1 l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {6 Max_panelDropped_1_1_1_1_1_1 l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {6 Max_panelDropped_1_1_1_1_1_1_1 l "panel dropped state" -STARTLINE +HIDDEN}
  addUserKnob {19 Avg l "Avg (RGBV):"}
  Avg {{valueMeasurerR.intensitydata.r} {valueMeasurerG.intensitydata.g} {valueMeasurerB.intensitydata.b} {luminanceMeasurer.intensitydata.r}}
  addUserKnob {6 Avg_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
@@ -43,13 +47,14 @@ Group {
  addUserKnob {6 Avg_panelDropped_1_1_1 l "panel dropped state" -STARTLINE +HIDDEN}
  addUserKnob {6 Avg_panelDropped_1_1_1_1 l "panel dropped state" -STARTLINE +HIDDEN}
  addUserKnob {6 Avg_panelDropped_1_1_1_1_1 l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {6 Avg_panelDropped_1_1_1_1_1_1 l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {6 Avg_panelDropped_1_1_1_1_1_1_1 l "panel dropped state" -STARTLINE +HIDDEN}
  addUserKnob {20 endGroup n -1}
  addUserKnob {26 spacer l "" +STARTLINE}
  addUserKnob {20 DisplayGroup l "Output Display Settings:" -STARTLINE n 1}
- addUserKnob {6 showText l "Stamp Results" -STARTLINE}
- showText true
+ addUserKnob {4 showTextB l "stamp results" M {none all "max only"}}
+ showTextB "max only"
  addUserKnob {6 ColoriseSwitch l "Colorise Results" t "Colorise in green noise within +- 5% of the average value, in red the one without." -STARTLINE}
- ColoriseSwitch true
  addUserKnob {7 percThreshold l "Percent Threshold" t "Colorise Percent Threshold" -STARTLINE R 0 100}
  percThreshold 100
  addUserKnob {68 autoNormaliseOutputMode l "Auto Normalise Mode:" M {none "Max value" "Average Value" ""}}
@@ -74,7 +79,7 @@ Group {
   xpos 378
   ypos -1014
  }
-set N5f47b180 [stack 0]
+set N92e67c00 [stack 0]
  Premult {
   name Premult
   xpos 248
@@ -85,7 +90,7 @@ set N5f47b180 [stack 0]
   xpos 282
   ypos -966
  }
-push $N5f47b180
+push $N92e67c00
  Switch {
   inputs 2
   which {{parent.PremultCkb}}
@@ -99,13 +104,13 @@ push $N5f47b180
   xpos 378
   ypos -918
  }
-set N5f47a380 [stack 0]
+set Nd7135500 [stack 0]
  Dot {
   name Dot8
   xpos 474
   ypos -918
  }
-set N5f47a000 [stack 0]
+set Nd7135180 [stack 0]
  Expression {
   temp_name0 kernelR
   temp_expr0 (r(x,y)+r(x,y-1)+r(x,y+1)+r(x-1,y)+r(x-1,y-1)+r(x-1,y+1)+r(x+1,y)+r(x+1,y-1)+r(x+1,y+1))/9
@@ -130,8 +135,8 @@ set N5f47a000 [stack 0]
   xpos 474
   ypos -846
  }
-set N5f38b500 [stack 0]
-push $N5f47a000
+set Nd7134700 [stack 0]
+push $Nd7135180
  Dot {
   name Dot45
   xpos 1146
@@ -139,12 +144,12 @@ push $N5f47a000
  }
  CurveTool {
   operation "Max Luma Pixel"
-  ROI {0 0 800 450}
-  autocropdata {0 0 800 450}
-  maxlumapixdata {{curve x1 489} {curve x1 290}}
-  maxlumapixvalue {{curve x1 9.375} {curve x1 9.296875} 8.0234375}
-  minlumapixdata {{curve x1 763} {curve x1 291}}
-  minlumapixvalue {{curve x1 0.01132202148} {curve x1 0.01152801514} 0.01076507568}
+  ROI {0 0 640 480}
+  autocropdata {0 0 640 480}
+  maxlumapixdata {{curve x1 421} {curve x1 209}}
+  maxlumapixvalue {{curve x1 0.9541015625} {curve x1 0.8813476563} 0.90625}
+  minlumapixdata {{curve x1 499} {curve x1 187}}
+  minlumapixvalue {{curve x1 0.3159179688} {curve x1 0.1650390625} 0.09808349609}
   name findImgMax
   xpos 1112
   ypos -898
@@ -195,32 +200,32 @@ push $N5f47a000
   xpos 1050
   ypos -366
  }
-set N5f3bb880 [stack 0]
+set Nd7161180 [stack 0]
  Dot {
   name Dot34
   xpos 1050
   ypos -318
  }
-set N5f3bb500 [stack 0]
-push $N5f47a380
+set Nd7160e00 [stack 0]
+push $Nd7135500
  Dot {
   name Dot9
   xpos 378
   ypos -438
  }
-set N5f3bb180 [stack 0]
+set Nd7160a80 [stack 0]
  Dot {
   name Dot11
   xpos 378
   ypos -366
  }
-set N5f3bae00 [stack 0]
+set Nd7160700 [stack 0]
  Dot {
   name Dot33
   xpos 378
   ypos -318
  }
-set N5f3baa80 [stack 0]
+set Nd7160380 [stack 0]
  Merge2 {
   inputs 2
   operation minus
@@ -233,14 +238,14 @@ set N5f3baa80 [stack 0]
   xpos 858
   ypos -270
  }
-set N5f3ba380 [stack 0]
-push $N5f3bb500
+set Nd7181c00 [stack 0]
+push $Nd7160e00
  Dot {
   name Dot40
   xpos 1050
   ypos -294
  }
-set N5f3ba000 [stack 0]
+set Nd7181880 [stack 0]
  Merge2 {
   inputs 2
   operation divide
@@ -264,7 +269,7 @@ set N5f3ba000 [stack 0]
   xpos 1050
   ypos -150
  }
-push $N5f3ba380
+push $Nd7181c00
  Expression {
   expr0 r*r
   expr1 g*g
@@ -281,8 +286,8 @@ push $N5f3ba380
   xpos 858
   ypos -174
  }
-push $N5f3bb880
-push $N5f3bae00
+push $Nd7161180
+push $Nd7160700
  Merge2 {
   inputs 2
   operation difference
@@ -295,8 +300,8 @@ push $N5f3bae00
   xpos 474
   ypos -294
  }
-set N5f3e4000 [stack 0]
-push $N5f3ba000
+set Nd71a7880 [stack 0]
+push $Nd7181880
  Merge2 {
   inputs 2
   operation divide
@@ -309,20 +314,20 @@ push $N5f3ba000
   xpos 570
   ypos -222
  }
-push $N5f3e4000
+push $Nd71a7880
  Dot {
   name Dot16
   xpos 474
   ypos -246
  }
-push $N5f38b500
+push $Nd7134700
  Dot {
   name Dot14
   xpos 474
   ypos -630
  }
-set N5f217180 [stack 0]
-push $N5f3bb180
+set Nd71a6a80 [stack 0]
+push $Nd7160a80
  Merge2 {
   inputs 2
   operation divide
@@ -345,25 +350,25 @@ push $N5f3bb180
   xpos 666
   ypos -198
  }
-push $N5f47a380
+push $Nd7135500
  Dot {
   name Dot7
   xpos 282
   ypos -918
  }
-set N5f216000 [stack 0]
+set Nd71c9880 [stack 0]
  Dot {
   name Dot10
   xpos 186
   ypos -918
  }
-set N5f237c00 [stack 0]
+set Nd71c9500 [stack 0]
  Dot {
   name Dot12
   xpos 90
   ypos -918
  }
-set N5f237880 [stack 0]
+set Nd71c9180 [stack 0]
  Dot {
   name Dot13
   xpos -6
@@ -393,7 +398,7 @@ set N5f237880 [stack 0]
   xpos -6
   ypos -150
  }
-push $N5f237880
+push $Nd71c9180
  Expression {
   temp_name0 varR
   temp_expr0 " \[value RMS.temp_expr0]-(\[value AVG.temp_expr0] * \[value AVG.temp_expr0])"
@@ -418,7 +423,7 @@ push $N5f237880
   xpos 90
   ypos -174
  }
-push $N5f237c00
+push $Nd71c9500
  Expression {
   temp_name0 rmsR
   temp_expr0 "sqrt ( (r(x,y)*r(x,y)+r(x,y-1)*r(x,y-1)+r(x,y+1)*r(x,y+1)+r(x-1,y)*r(x-1,y)+r(x-1,y-1)*r(x-1,y-1)+r(x-1,y+1)*r(x-1,y+1)+r(x+1,y)*r(x+1,y)+r(x+1,y-1)*r(x+1,y-1)+r(x+1,y+1)*r(x+1,y+1))/9\n)"
@@ -443,7 +448,7 @@ push $N5f237c00
   xpos 186
   ypos -198
  }
-push $N5f216000
+push $Nd71c9880
  Expression {
   temp_name0 avgR
   temp_expr0 (r(x,y)+r(x,y-1)+r(x,y+1)+r(x-1,y)+r(x-1,y-1)+r(x-1,y+1)+r(x+1,y)+r(x+1,y-1)+r(x+1,y+1))/9
@@ -468,7 +473,7 @@ push $N5f216000
   xpos 282
   ypos -222
  }
-push $N5f217180
+push $Nd71a6a80
  Dot {
   name Dot17
   xpos -102
@@ -479,7 +484,7 @@ push $N5f217180
   xpos -102
   ypos -102
  }
-push $N5f3baa80
+push $Nd7160380
  Switch {
   inputs 12
   which {{viewPD}}
@@ -493,7 +498,7 @@ push $N5f3baa80
   xpos 378
   ypos -54
  }
-set N5f2d3c00 [stack 0]
+set Nd7209500 [stack 0]
  Dot {
   name Dot28
   xpos 282
@@ -513,7 +518,7 @@ set N5f2d3c00 [stack 0]
   xpos 282
   ypos -6
  }
-push $N5f2d3c00
+push $Nd7209500
  Switch {
   inputs 2
   which {{parent.nanProtect}}
@@ -526,7 +531,7 @@ push $N5f2d3c00
   xpos 378
   ypos 42
  }
-set N5f2d2700 [stack 0]
+set Nd7208000 [stack 0]
  Dot {
   name Dot51
   label "Colorise Branch"
@@ -539,7 +544,7 @@ set N5f2d2700 [stack 0]
   xpos 954
   ypos 66
  }
-set N6ef29880 [stack 0]
+set Nd7329880 [stack 0]
  Dot {
   name Dot56
   xpos 1050
@@ -558,7 +563,7 @@ set N6ef29880 [stack 0]
   ypos 86
  }
 push 0
-push $N6ef29880
+push $Nd7329880
  Dot {
   name Dot58
   xpos 858
@@ -576,8 +581,8 @@ push $N6ef29880
   xpos 824
   ypos 86
  }
-set N3aa7e000 [stack 0]
-push $N6ef29880
+set Nd7328700 [stack 0]
+push $Nd7329880
  Expression {
   temp_name0 pMin
   temp_expr0 1
@@ -590,7 +595,7 @@ push $N6ef29880
   xpos 920
   ypos 86
  }
-set N6304f180 [stack 0]
+set Nd7328000 [stack 0]
  Merge2 {
   inputs 3+1
   operation plus
@@ -598,19 +603,19 @@ set N6304f180 [stack 0]
   xpos 1016
   ypos 138
  }
-push $N5f2d2700
+push $Nd7208000
  Dot {
   name Dot35
   xpos 378
   ypos 114
  }
-set N5f334700 [stack 0]
+set Nd7345500 [stack 0]
  Dot {
   name Dot36
   xpos 474
   ypos 114
  }
-set N5f334380 [stack 0]
+set Nd7345180 [stack 0]
  Dot {
   name Dot38
   xpos 570
@@ -627,7 +632,7 @@ set N5f334380 [stack 0]
   xpos 570
   ypos 186
  }
-push $N5f334380
+push $Nd7345180
  Grade {
   white {{"1.0/(max (valueMeasurerR.maxlumapixvalue.r, valueMeasurerG.maxlumapixvalue.g, valueMeasurerB.maxlumapixvalue.b, luminanceMeasurer.maxlumapixvalue.r) !=0.0 ? max (valueMeasurerR.maxlumapixvalue.r, valueMeasurerG.maxlumapixvalue.g, valueMeasurerB.maxlumapixvalue.b, luminanceMeasurer.maxlumapixvalue.r) :1)"}}
   name AutoOutputGainByMax
@@ -639,7 +644,7 @@ push $N5f334380
   xpos 474
   ypos 162
  }
-push $N5f334700
+push $Nd7345500
  Switch {
   inputs 3
   which {{autoNormaliseOutputMode}}
@@ -658,7 +663,7 @@ push $N5f334700
   xpos 378
   ypos 234
  }
-set N5ece6700 [stack 0]
+set Nd7377500 [stack 0]
  Merge2 {
   inputs 2
   operation overlay
@@ -666,13 +671,13 @@ set N5ece6700 [stack 0]
   xpos 1016
   ypos 230
  }
-set N5ece6380 [stack 0]
+set Nd7377180 [stack 0]
  Dot {
   name Dot53
   xpos 1050
   ypos 258
  }
-push $N5ece6700
+push $Nd7377500
  Switch {
   inputs 2
   which {{parent.ColoriseSwitch}}
@@ -685,19 +690,74 @@ push $N5ece6700
   xpos 378
   ypos 306
  }
-set N3647880 [stack 0]
+set Nd7376700 [stack 0]
  Dot {
   name Dot50
   xpos 378
-  ypos 354
+  ypos 392
  }
-set N3647500 [stack 0]
-push $N3647880
+set Nd7376380 [stack 0]
+push $Nd7376700
  Dot {
   name Dot1
   xpos 474
   ypos 306
  }
+set Nd7376000 [stack 0]
+ Dot {
+  name Dot48
+  xpos 623
+  ypos 306
+ }
+ Text2 {
+  font_size_toolbar 16
+  font_width_toolbar 100
+  font_height_toolbar 100
+  premult rgb
+  message "Mode: \[value viewPD]\nmax (RGBV):  \[format \"%f\" \[value valueMeasurerR.maxlumapixvalue.r]], \[format \"%f\" \[value valueMeasurerG.maxlumapixvalue.g]], \[format \"%f\" \[value valueMeasurerB.maxlumapixvalue.b]], \[format \"%f\" \[value luminanceMeasurer.maxlumapixvalue.r]]\n\n\n"
+  old_message {{77 111 100 101 58 32 78 111 105 115 101 32 84 104 114 101 115 104 111 108 100 32 40 65 98 115 41 10 109 97 120 32 40 82 71 66 86 41 58 32 32 48 46 48 48 48 48 48 48 44 32 48 46 48 48 48 48 48 48 44 32 48 46 48 48 48 48 48 48 44 32 48 46 48 48 48 48 48 48 10 10 10}
+    }
+  old_expression_markers {{6 26 41 48 51 58 61 68 71 78}
+    }
+  box {8 0 640 472}
+  transforms {{0 2}
+    }
+  font_size_values {{0 16 1 16 2 16 3 16 4 16 5 16 6 16 7 16 8 16 9 16 10 16 11 16 12 16 13 16 14 16 15 16 16 16 17 16 18 16 19 16 20 16 21 16 22 16 23 16 24 16 25 16 26 16 5 14 27 16 28 16 29 16 30 16 31 16 32 16 33 16 34 16 35 16 36 16 37 16 38 16 39 16 40 16 41 16 42 16 43 16 44 16 45 16 46 16 47 16 48 16 49 16 50 16 51 16 52 16 53 16 54 16 55 16 56 16 57 16 58 16 59 16 60 16 61 16 62 16 63 16 64 16 65 16 66 16 67 16 68 16 69 16 70 16 71 16 72 16 73 16 74 16 75 16 76 16 77 16 78 16 79 16 80 16 81 16 80 1000 81 1000}
+    }
+  cursor_position 260
+  font_size 16
+  scale {1 1}
+  cursor_initialised true
+  autofit_bbox false
+  initial_cursor_position {{7 1558.5}
+    }
+  group_animations {{0} imported: 0 selected: items: "root transform/"}
+  animation_layers {{1 11 1024 778 0 0 1 1 0 0 0 0}
+    }
+  enable_shadows true
+  shadow_opacity 1
+  shadow_distance 0
+  shadow_softness 1.5
+  shadow_size 4.5
+  name stampText1
+  tile_color 0xffd600ff
+  xpos 589
+  ypos 364
+ }
+ Merge2 {
+  inputs 2
+  operation plus
+  name Merge5
+  xpos 589
+  ypos 392
+ }
+ Dot {
+  name Dot49
+  xpos 623
+  ypos 439
+ }
+push $Nd7376380
+push $Nd7376000
  Text2 {
   font_size_toolbar 16
   font_width_toolbar 100
@@ -708,7 +768,7 @@ push $N3647880
     }
   old_expression_markers {{6 26 41 48 51 58 61 68 71 78 93 100 103 110 113 120 123 130 146 153 156 163 166 173 176 183}
     }
-  box {8 0 800 442}
+  box {8 0 640 472}
   transforms {{0 2}
     }
   font_size_values {{0 16 1 16 2 16 3 16 4 16 5 16 6 16 7 16 8 16 9 16 10 16 11 16 12 16 13 16 14 16 15 16 16 16 17 16 18 16 19 16 20 16 21 16 22 16 23 16 24 16 25 16 26 16 5 14 27 16 28 16 29 16 30 16 31 16 32 16 33 16 34 16 35 16 36 16 37 16 38 16 39 16 40 16 41 16 42 16 43 16 44 16 45 16 46 16 47 16 48 16 182 16 28 20 29 20 30 20 38 20 49 16 50 16 51 16 52 16 53 16 54 16 55 16 56 16 57 16 58 16 59 16 60 16 61 16 62 16 63 16 64 16 65 16 66 16 67 16 68 16 69 16 70 16 71 16 72 16 73 16 74 16 75 16 76 16 77 16 78 16 79 16 80 16 81 16 82 16 83 16 84 16 85 16 86 16 87 16 88 16 89 16 90 16 91 16 92 16 93 16 94 16 95 16 96 16 97 16 98 16 99 16 100 16 101 16 102 16 103 16 104 16 105 16 106 16 107 16 108 16 109 16 110 16 111 16 112 16 113 16 114 16 115 16 116 16 117 16 118 16 119 16 120 16 121 16 122 16 123 16 124 16 125 16 126 16 127 16 128 16 129 16 130 16 131 16 132 16 133 16 134 16 135 16 136 16 137 16 138 16 139 16 140 16 141 16 142 16 143 16 144 16 145 16 146 16 147 16 148 16 149 16 150 16 151 16 152 16 153 16 154 16 155 16 156 16 157 16 158 16 159 16 160 16 161 16 162 16 163 16 164 16 165 16 166 16 167 16 168 16 169 16 170 16 171 16 172 16 173 16 174 16 175 16 176 16 177 16 178 16 179 16 180 16 172 15 173 15 174 15 175 15 176 15 177 15 178 15 179 15 180 15 181 16 181 16 183 16 184 16 185 16 183 1000 184 1000 185 1000}
@@ -731,62 +791,62 @@ push $N3647880
   name stampText
   tile_color 0xffd600ff
   xpos 440
-  ypos 326
+  ypos 364
  }
  Merge2 {
   inputs 2
   operation plus
   name Merge6
   xpos 440
-  ypos 350
+  ypos 388
  }
  Dot {
   name Dot4
   xpos 474
-  ypos 402
+  ypos 424
  }
-push $N3647500
+push $Nd7376380
  Switch {
-  inputs 2
-  which {{parent.showText}}
+  inputs 3
+  which {{parent.showTextB}}
   name StampSwitch
   tile_color 0x55ff7fff
   xpos 344
-  ypos 398
+  ypos 435
  }
  Output {
   name Output1
   xpos 344
-  ypos 446
+  ypos 484
  }
-push $N5f2d2700
+push $Nd7208000
  Dot {
   name Dot30
   xpos 186
   ypos 42
  }
-set N5f2d2380 [stack 0]
+set Nd73db500 [stack 0]
  Dot {
   name Dot32
   xpos -6
   ypos 42
  }
-set N5f2f5880 [stack 0]
+set Nd73db180 [stack 0]
  CurveTool {
   channels {-rgba.red -rgba.green rgba.blue none}
-  ROI {0 0 800 450}
-  autocropdata {0 0 800 450}
-  intensitydata {{curve} 0 0.03220380759 0}
-  maxlumapixdata {{curve x1 425} {curve x1 371}}
-  maxlumapixvalue {{curve x1 0} {curve x1 0} 3.023980141}
-  minlumapixdata {{curve x1 593} {curve x1 5}}
-  minlumapixvalue {{curve x1 0} {curve x1 0} 0}
+  ROI {0 0 640 480}
+  autocropdata {0 0 640 480}
+  intensitydata {0 0 0 0}
+  maxlumapixdata {{curve x1 437} {curve x1 174}}
+  maxlumapixvalue {0 0 0}
+  minlumapixdata {{curve x1 402} {curve x1 0}}
+  minlumapixvalue {0 0 0}
   name valueMeasurerB
   tile_color 0xb740b6ff
   xpos -40
   ypos 62
  }
-push $N5f2d2380
+push $Nd73db500
  Colorspace {
   colorspace_out CIE-Yxy
   bradford_matrix true
@@ -796,25 +856,25 @@ push $N5f2d2380
   ypos 62
  }
  CurveTool {
-  ROI {0 0 800 450}
-  autocropdata {0 0 800 450}
-  intensitydata {{curve x1 0.03496005219} {curve x1 0.3171621647} {curve x1 0.3298193455} 0}
-  maxlumapixdata {{curve x1 425} {curve x1 208}}
-  maxlumapixvalue {{curve x1 2.795427322} {curve x1 0.3344934285} 0.3493923545}
-  minlumapixdata {{curve x1 474} {curve x1 186}}
-  minlumapixvalue {{curve x1 0} {curve x1 0} 0}
+  ROI {0 0 640 480}
+  autocropdata {0 0 640 480}
+  intensitydata {0 0 0 0}
+  maxlumapixdata {{curve x1 505} {curve x1 191}}
+  maxlumapixvalue {0 0 0}
+  minlumapixdata {{curve x1 235} {curve x1 466}}
+  minlumapixvalue {0 0 0}
   name luminanceMeasurer
   tile_color 0xb740b6ff
   xpos 152
   ypos 110
  }
-push $N5f2f5880
+push $Nd73db180
  Dot {
   name Dot6
   xpos -102
   ypos 42
  }
-set N5f2f5180 [stack 0]
+set Nd73da380 [stack 0]
  Dot {
   name Dot31
   xpos -198
@@ -822,36 +882,36 @@ set N5f2f5180 [stack 0]
  }
  CurveTool {
   channels {rgba.red -rgba.green -rgba.blue none}
-  ROI {0 0 800 450}
-  autocropdata {0 0 800 450}
-  intensitydata {{curve x1 0.035241824} 0 0 0}
-  maxlumapixdata {{curve x1 425} {curve x1 208}}
-  maxlumapixvalue {{curve x1 3.114691734} {curve x1 0} 0}
-  minlumapixdata {{curve x1 406} {curve x1 5}}
-  minlumapixvalue {{curve x1 0} {curve x1 0} 0}
+  ROI {0 0 640 480}
+  autocropdata {0 0 640 480}
+  intensitydata {0 0 0 0}
+  maxlumapixdata {{curve x1 206} {curve x1 459}}
+  maxlumapixvalue {0 0 0}
+  minlumapixdata {{curve x1 556} {curve x1 3}}
+  minlumapixvalue {0 0 0}
   name valueMeasurerR
   tile_color 0xb740b6ff
   xpos -232
   ypos 110
  }
-push $N5f2f5180
+push $Nd73da380
  CurveTool {
   channels {-rgba.red rgba.green -rgba.blue none}
-  ROI {0 0 800 450}
-  autocropdata {0 0 800 450}
-  intensitydata {{curve} 0.03515445816 0 0}
-  maxlumapixdata {{curve x1 425} {curve x1 371}}
-  maxlumapixvalue {{curve x1 0} {curve x1 2.786349773} 0}
-  minlumapixdata {{curve x1 656} {curve x1 3}}
-  minlumapixvalue {{curve x1 0} {curve x1 0} 0}
+  ROI {0 0 640 480}
+  autocropdata {0 0 640 480}
+  intensitydata {0 0 0 0}
+  maxlumapixdata {{curve x1 437} {curve x1 175}}
+  maxlumapixvalue {0 0 0}
+  minlumapixdata {{curve x1 274} {curve x1 0}}
+  minlumapixvalue {0 0 0}
   name valueMeasurerG
   tile_color 0xb740b6ff
   xpos -136
   ypos 86
  }
-push $N3aa7e000
-push $N6304f180
-push $N5ece6380
+push $Nd7328700
+push $Nd7328000
+push $Nd7377180
  Viewer {
   inputs 3
   frame_range 1-12
